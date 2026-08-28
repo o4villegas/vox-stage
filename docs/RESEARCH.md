@@ -196,6 +196,29 @@ the cited pages.
   and the artifact's fixed self-publish return loop confirmed working (delivered
   round-trip at 21:32:08Z).
 
+- **R41.** S1 mic half, first working device pass (iPhone iOS 18.7, real Safari, via
+  https://voxstage-spikes.pages.dev/s1/, 2026-08-28 22:08Z, echoCancellation OFF): mic
+  permission granted; blob-URL worklet tap loaded; **pitch pipeline ran at 46.9
+  windows/s — the theoretical rate (48000/1024 = 46.875)** — while the shifted 2-stem
+  loop played. iOS applied exactly `{echoCancellation:false}` and exposed no
+  noiseSuppression/autoGainControl fields (corroborates R24). outputLatency 9.7 ms.
+  Clock drift 510 ms over the run (duration not captured by this report version;
+  possible app-switch pause or mic-engagement route glitch — see open questions).
+  `longTasks: 0` is NOT evidence of health: Safari likely doesn't support the longtask
+  observer, and the page swallows that failure.
+- **R42.** Same device/page, **echoCancellation ON** (2026-08-28 22:09Z): iOS applied
+  `{echoCancellation:true}` and rebuilt the audio route (mic `groupId` changed between
+  passes). Result: **pitch window rate collapsed 46.9 → 29.2 windows/s** (mic samples no
+  longer arriving at real-time rate — duration-normalized, so valid despite unknown run
+  lengths) and **clock drift exploded to 11.39 s** (vs 0.51 s EC-off). Interpretation:
+  requesting EC engages iOS's voice-processing audio path, which throttles/stalls the
+  Web Audio graph during simultaneous playback + capture. **Decision input: EC must stay
+  OFF on iOS** — this independently re-derives Rangefinder's production guardrail and
+  extends it (not just pitch distortion; pipeline starvation). Design consequence:
+  scoring must tolerate backing-track bleed in the raw mic signal (clarity gating,
+  level dominance of the singer's voice, optional headphones-recommended mode) rather
+  than lean on EC.
+
 ## Absence claims (inherently T2 — cannot prove a negative)
 
 - **R33.** No product found that combines: user-uploaded songs + stem separation + persistent
