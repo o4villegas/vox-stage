@@ -16,17 +16,20 @@ results get recorded as new entries in docs/RESEARCH.md.
 
 ## Running the device pages (S1, S4)
 
-Phones require HTTPS for mic access. Easiest path (matches the Rangefinder tooling):
+**DEPLOYED (2026-08-28, via the from-desktop bridge + Lando's wrangler login):**
+**https://voxstage-spikes.pages.dev** — `/s1/` and `/s4/`, Cloudflare Pages project
+`voxstage-spikes` on Lando's account. Mic prompts normally here (top-level HTTPS) —
+unlike the claude.ai artifact host, whose iframe blocks mic in all browsers (R40).
+
+Open it on each phone, run both tests, tap **Copy results JSON**, and paste the JSON back
+into the session — it gets recorded in docs/RESEARCH.md against the gates.
+
+To redeploy after changing spike pages (staging dir lives at
+`/home/lando555/voxstage-spikes-deploy` on Lando's machine):
 
 ```sh
-# S1 — from the repo root, on a machine with wrangler logged in:
-npx wrangler pages deploy spikes/s1-client-audio/dist --project-name voxstage-spikes
-# S4 is dependency-free; deploy its folder directly:
-npx wrangler pages deploy spikes/s4-latency-cal --project-name voxstage-spikes-s4
+npx wrangler pages deploy site --project-name voxstage-spikes --commit-dirty=true
 ```
-
-Open the `.pages.dev` URL on each phone, run, tap **Copy results JSON**, and paste the
-JSON back into the session — it gets recorded in docs/RESEARCH.md against the gates.
 
 On S1, test with **echoCancellation both off and on** while the stems play — that's the
 open question from Rangefinder's guardrail (ROADMAP S1).
