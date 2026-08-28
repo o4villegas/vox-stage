@@ -9,10 +9,10 @@ results get recorded as new entries in docs/RESEARCH.md.
 | Spike | Sandbox-executable part | Result | Device/credential part | Status |
 |---|---|---|---|---|
 | S0 Rangefinder audit | read via desktop connector | partial (R34) | — | **blocked mid-audit: connector disconnected; resume when back** |
-| S1 client audio chain | stretch + pitchy bench, headless Chromium | **PASS on desktop CPU** (R35): stretch 22.3× realtime, pitchy 3,824 win/s @ 1.5 mean cents | open `s1-client-audio/dist/` on real phones | sandbox half done; **awaiting phone runs** |
+| S1 client audio chain | stretch + pitchy bench, headless Chromium | **PASS on desktop CPU** (R35): stretch 22.3× realtime, pitchy 3,824 win/s @ 1.5 mean cents | Phone Lab artifact run, iPhone iOS 18.7 (R39): **playback+shifter PASS in-app** (drift −1.3 ms, 0 long tasks); mic `NotAllowedError` in the in-app viewer | **mic half needs a Safari rerun** (+ long soak, EC A/B) |
 | S2 RunPod pipeline | Docker Hub base tag verified; worker+driver written | not run | needs `RUNPOD_API_KEY` (+ endpoint, test song URL) | **blocked: no RunPod credentials in this environment** |
 | S3 melody extraction | scoring math property tests | **PASS** (R37) | `eval_pyin.py` on real stems (runs after S2) | client half done |
-| S4 latency calibration | cross-correlation unit tests | **PASS** (R36): 0-sample error at SNR ≈ 6 dB | open `s4-latency-cal/` on real phones, wired + Bluetooth | math proven; **awaiting phone runs** |
+| S4 latency calibration | cross-correlation unit tests | **PASS** (R36): 0-sample error at SNR ≈ 6 dB | first iPhone attempt blocked by in-app mic `NotAllowedError` (R39) | math proven; **needs Safari rerun** |
 
 ## Running the device pages (S1, S4)
 

@@ -218,6 +218,16 @@ the cited pages.
   unvoiced-ref excluded; fold bounded to [-600, 600)).
 - **R38.** Docker Hub tag `pytorch/pytorch:2.5.1-cuda12.4-cudnn9-runtime` exists (registry
   API, 2026-08-28) — S2 worker base image.
+- **R39.** First real-device run (Lando's iPhone, iOS 18.7, **inside the claude.ai in-app
+  viewer**, 2026-08-28, via the Phone Lab artifact): **playback plane PASSES on iPhone** —
+  signalsmith-stretch WASM AudioWorklet loaded (data:-URL module under the artifact CSP),
+  2-stem loop played at +3 st for a 20 s smoke soak at 48 kHz with **clock drift −1.3 ms,
+  0 long tasks, outputLatency 12.3 ms, baseLatency 2.7 ms**. **Mic path blocked in the
+  in-app viewer**: `getUserMedia` → `NotAllowedError` ("not allowed by the user agent or
+  the platform in the current context") for both the tracker and S4 — mic tests require
+  opening the page in Safari (R24: iOS Safari supports getUserMedia). The artifact
+  self-publish results channel worked (delivered:true round-trip). Still pending: Safari
+  rerun for mic tracking + S4 latency, longer soak, echoCancellation A/B, Bluetooth.
 
 ## Could-not-verify register (as of 2026-08-28)
 
