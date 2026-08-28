@@ -189,6 +189,36 @@ the cited pages.
   measured vocal profile + automatic range-fit transposition + live pitch feedback. Each
   half exists separately (R28, R29). A niche or stealth competitor could exist.
 
+## Phase 0 measurements (own experiments — T1 for the stated environment)
+
+- **R34.** S0 partial — Rangefinder audit (read from `/home/lando555/VoxFiles` via the
+  from-desktop connector, 2026-08-28, **interrupted by connector disconnect**). Verified
+  before the cut: project = "Rangefinder", a deployed vocal-range PWA (Cloudflare Pages,
+  wrangler runbook); engine contract `mpm(buf, sr) -> {hz, clarity} | null`, 60–1200 Hz
+  clamp, NSDF peak picking at 0.93 threshold + parabolic interpolation, FFT-accelerated
+  (Wiener–Khinchin) with exact prefix-sum normalization, behavior-locked to a frozen
+  baseline via `verify/harness.mjs`; production guardrail: echoCancellation,
+  noiseSuppression, autoGainControl all OFF ("turning any of them on distorts the pitch
+  reading"). **Still unread:** full engine body (74/124 lines of `mpm-fast.mjs`),
+  `index.html` app (33 KB), `harness.mjs`, `splice-mpm.mjs` — resume when the connector
+  returns.
+- **R35.** S1 sandbox bench (headless Chromium 141, container x86 CPU, 2026-08-28; code:
+  `spikes/s1-client-audio/`): `signalsmith-stretch` rendered 60 s of 2-stem stereo mix at
+  +3 semitones in 2.69 s wall — **22.3× realtime**. `pitchy` (MPM, 2048-sample windows,
+  hop 512): **3,824 windows/s**; accuracy on a known 220 Hz ±5 Hz vibrato tone with noise:
+  **mean 1.54 / max 2.89 abs cents**, 465/465 windows above 0.9 clarity. Desktop-class
+  numbers only — the S1 gate still requires real-phone runs.
+- **R36.** S4 math validation (Node 22, 2026-08-28; `spikes/s4-latency-cal/xcorr.test.mjs`):
+  normalized cross-correlation recovered chirp offsets with **0-sample error in 5/5
+  cases**, including 0.08 gain against 0.06-σ noise (SNR ≈ 6 dB); ~0.8 s per search over
+  2 s @ 48 kHz. Physical round-trip numbers still require device runs.
+- **R37.** S3 scoring-math validation (Node 22, 2026-08-28;
+  `spikes/s3-melody-eval/contour-score.test.mjs`): octave-folded cents scoring passes all
+  property tests (perfect=100, octave-up=100, 50-cents-flat=50, semitone-off=0, silence=0,
+  unvoiced-ref excluded; fold bounded to [-600, 600)).
+- **R38.** Docker Hub tag `pytorch/pytorch:2.5.1-cuda12.4-cudnn9-runtime` exists (registry
+  API, 2026-08-28) — S2 worker base image.
+
 ## Could-not-verify register (as of 2026-08-28)
 
 - Moises first-party pricing page; exact free-tier definition.

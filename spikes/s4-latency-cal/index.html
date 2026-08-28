@@ -1,0 +1,99 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VoxStage Spike S4 — latency calibration</title>
+<style>
+  body { font: 16px system-ui; margin: 1rem; max-width: 40rem; background:#111; color:#eee; }
+  button { font-size: 1.1rem; padding: .6rem 1rem; }
+  table { border-collapse: collapse; margin: 1rem 0; }
+  td, th { border: 1px solid #444; padding: .3rem .8rem; }
+  pre { background:#000; padding:.6rem; overflow:auto; font-size:.75rem; }
+</style>
+<h2>Spike S4 — round-trip latency calibration</h2>
+<p>Plays 5 chirps through the speaker and finds each in the mic signal.
+Pass gate: wired/built-in spread ±20 ms (docs/ROADMAP.md). Volume up, quiet room.
+Run once on built-in speaker+mic, once on Bluetooth if you use it.</p>
+<button id="run">Run calibration (5 chirps)</button>
+<table id="tbl"><tr><th>#</th><th>round-trip ms</th><th>peak</th></tr></table>
+<pre id="out"></pre>
+<button id="copy">Copy results JSON</button>
+<script type="module">
+import { makeChirp, findOffset } from "./xcorr.mjs";
+const $ = (id) => document.getElementById(id);
+
+const REC_CODE = `
+class Rec extends AudioWorkletProcessor {
+  constructor(){ super(); this.sent = false; }
+  process(inputs){
+    if (!this.sent) { this.sent = true; this.port.postMessage({ start: currentTime }); }
+    const ch = inputs[0] && inputs[0][0];
+    if (ch && ch.length) this.port.postMessage(ch.slice(0));
+    return true;
+  }
+}
+registerProcessor("rec", Rec);`;
+
+async function once(ctx, micSource, chirpBuf, chirp) {
+  await ctx.audioWorklet.addModule(URL.createObjectURL(new Blob([REC_CODE], { type: "application/javascript" })));
+  const rec = new AudioWorkletNode(ctx, "rec");
+  const chunks = [];
+  let recStart = null;
+  rec.port.onmessage = (e) => { if (e.data.start !== undefined) recStart = e.data.start; else chunks.push(e.data); };
+  micSource.connect(rec);
+
+  const src = ctx.createBufferSource();
+  src.buffer = chirpBuf;
+  src.connect(ctx.destination);
+  const t0 = ctx.currentTime + 0.35;
+  src.start(t0);
+
+  await new Promise((ok) => setTimeout(ok, 1800));
+  micSource.disconnect(rec);
+  const total = chunks.reduce((a, c) => a + c.length, 0);
+  const all = new Float32Array(total);
+  let off = 0;
+  for (const c of chunks) { all.set(c, off); off += c.length; }
+
+  const expected = Math.round((t0 - recStart) * ctx.sampleRate);
+  const { lag, peak } = findOffset(all, chirp);
+  return { roundTripMs: ((lag - expected) / ctx.sampleRate) * 1000, peak };
+}
+
+$("run").onclick = async () => {
+  $("run").disabled = true;
+  try {
+    const ctx = new AudioContext();
+    await ctx.resume();
+    const stream = await navigator.mediaDevices.getUserMedia({
+      audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false },
+    });
+    const micSource = ctx.createMediaStreamSource(stream);
+    const chirp = makeChirp(ctx.sampleRate);
+    const chirpBuf = ctx.createBuffer(1, chirp.length, ctx.sampleRate);
+    chirpBuf.getChannelData(0).set(chirp);
+
+    const runs = [];
+    for (let i = 1; i <= 5; i++) {
+      const r = await once(ctx, micSource, chirpBuf, chirp);
+      runs.push(r);
+      $("tbl").insertAdjacentHTML("beforeend",
+        `<tr><td>${i}</td><td>${r.roundTripMs.toFixed(1)}</td><td>${r.peak.toFixed(3)}</td></tr>`);
+    }
+    const vals = runs.map((r) => r.roundTripMs);
+    const mean = vals.reduce((a, b) => a + b) / vals.length;
+    const sd = Math.sqrt(vals.reduce((a, b) => a + (b - mean) ** 2, 0) / vals.length);
+    const report = {
+      userAgent: navigator.userAgent, sampleRate: ctx.sampleRate,
+      baseLatency: ctx.baseLatency ?? null, outputLatency: ctx.outputLatency ?? null,
+      micSettings: stream.getAudioTracks()[0].getSettings(),
+      runsMs: vals.map((v) => +v.toFixed(1)), meanMs: +mean.toFixed(1), sdMs: +sd.toFixed(1),
+      passGate20ms: sd <= 20,
+    };
+    $("out").textContent = JSON.stringify(report, null, 2);
+    $("copy").onclick = () => navigator.clipboard.writeText(JSON.stringify(report, null, 2));
+  } catch (e) {
+    $("out").textContent = "ERROR: " + e;
+  }
+  $("run").disabled = false;
+};
+</script>

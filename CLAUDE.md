@@ -34,9 +34,14 @@ acting.
 
 ## Current state — UPDATE THIS SECTION AS IT CHANGES
 
-- **Phase:** Architecture proposed (this docs PR). **No application code exists.**
-- **Next step:** Phase 0 validation spikes (`docs/ROADMAP.md`) — defined but **not yet
-  approved to build**.
+- **Phase:** Phase 0 **approved by Lando ("go", 2026-08-28) and in progress.** Spike code
+  lives in `/spikes/` (throwaway — never graduates into the app). **No application code
+  exists**; Phase 1 still needs its own approval, milestone by milestone.
+- **Phase 0 status:** see the table in `spikes/README.md`. Sandbox-executable parts are
+  done and measured (R35–R37). Blockers: S1/S4 need runs on Lando's phones (pages built,
+  deploy instructions in `spikes/README.md`); S2 needs a `RUNPOD_API_KEY` (none in this
+  environment); S0 is half-done — the from-desktop connector disconnected mid-audit
+  (R34) — resume reading `/home/lando555/VoxFiles` when it returns.
 - **Product decisions confirmed by Lando (2026-08-28, T/F interview):** reuse prior
   VoxApp/VoxReport tech ("Rangefinder") for profile capture · accounts-first, no
   anonymous mode · 2-stem separation for MVP · live scoring is launch-blocking ·
