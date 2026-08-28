@@ -219,6 +219,21 @@ the cited pages.
   level dominance of the singer's voice, optional headphones-recommended mode) rather
   than lean on EC.
 
+- **R43.** Pass-1 (EC-off) follow-ups from Lando (2026-08-28): run length ≈ **1 minute**;
+  he **switched apps mid-run** — which accounts for the 510 ms clock drift as a
+  backgrounding pause, not underruns (pass-1 pipeline health therefore reads as good);
+  and he heard **system-level output ducking**: "the music compressed when I sang. My
+  voice was sidechained to the audio." The spike page's graph has no path that could
+  cause this (the mic tap never feeds the output), so this is iOS/WebKit applying
+  dynamic output processing while capture is live, even with echoCancellation off.
+  Caveats: subjective single listen; possible conflation with the EC-on run; needs a
+  controlled A/B in M5. Product consequences: (a) the iOS *web* experience will duck the
+  backing track under the singer's voice — acceptable for practice, imperfect for
+  performance feel; (b) dynamic ducking incidentally *reduces* backing-track bleed while
+  the user sings (mildly helps scoring); (c) a native shell (Capacitor) can configure
+  AVAudioSession directly and likely eliminate it — strengthening ADR-0008's App Store
+  phase; (d) headphones mode sidesteps it entirely.
+
 ## Absence claims (inherently T2 — cannot prove a negative)
 
 - **R33.** No product found that combines: user-uploaded songs + stem separation + persistent

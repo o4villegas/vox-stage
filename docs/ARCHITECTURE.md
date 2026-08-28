@@ -182,3 +182,4 @@ avoid per-session mic re-prompts (R25). All licenses App-Store-safe by construct
 | Cold-start wait on first song | Honest progress UX; active worker if volume justifies | First-song experience slower |
 | Separation/extraction quality varies by genre | Spike S2/S3 across genres; set expectations in UX | Some songs will sync poorly |
 | Copyright climate shifts | ADR-0007 guardrails; counsel review before public launch | Not eliminable |
+| iOS web ducks/compresses playback while the mic is open, even with EC off (R43) | Acceptable for MVP practice mode; headphones mode sidesteps it; native AVAudioSession config in the Capacitor phase is the real fix (ADR-0008) | Web-only iOS users keep some ducking |
