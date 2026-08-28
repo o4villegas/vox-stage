@@ -37,8 +37,21 @@ acting.
 - **Phase:** Architecture proposed (this docs PR). **No application code exists.**
 - **Next step:** Phase 0 validation spikes (`docs/ROADMAP.md`) — defined but **not yet
   approved to build**.
-- **Open decisions awaiting Lando:** formal architecture sign-off; iOS floor 14.5+
-  confirmation; GPU budget ceiling for beta; Phase 0 spike approval.
+- **Product decisions confirmed by Lando (2026-08-28, T/F interview):** reuse prior
+  VoxApp/VoxReport tech ("Rangefinder") for profile capture · accounts-first, no
+  anonymous mode · 2-stem separation for MVP · live scoring is launch-blocking ·
+  iOS 14.5+ floor CONFIRMED · beta GPU design ceiling ~$50/month · no export/download of
+  processed audio in MVP (ADR-0007 stands) · free beta, no payments · Phase 0 spikes run
+  and reviewed before M1 · milestones delivered end-to-end as single draft PRs.
+- **Prior art to reuse:** "Rangefinder" (`/home/lando555/VoxFiles` on Lando's machine,
+  readable via the from-desktop MCP connector) — his deployed vocal-range PWA: in-house
+  FFT-accelerated MPM pitch engine (`verify/mpm-fast.mjs` + engine in `index.html`),
+  accuracy harness with frozen baseline (`verify/harness.mjs`), PWA shell, Cloudflare
+  Pages deploy. Audit = Spike S0. Its production guardrail: echoCancellation,
+  noiseSuppression, AND autoGainControl all OFF — "turning any of them on distorts the
+  pitch reading."
+- **Open decisions awaiting Lando:** formal architecture sign-off (merge PR #1);
+  go-ahead to start Phase 0 spikes.
 
 ## Repo map
 

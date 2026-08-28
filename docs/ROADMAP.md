@@ -9,12 +9,24 @@ app; production code is written fresh in Phase 1+ against what the spikes proved
 Gate thresholds below are proposed **[judgment]** and tunable at kickoff. Every spike's
 results (numbers, device list, dates) get recorded in `docs/RESEARCH.md` as new T1 entries.
 
+### S0 — Rangefinder reuse audit (analysis only — no code; may run before spike approval)
+Inventory Rangefinder (`/home/lando555/VoxFiles`, via the from-desktop connector):
+the MPM engine, capture UX flow, accuracy harness + frozen-baseline pattern, PWA shell.
+Decide port-vs-rewrite per piece; carry the harness pattern into VoxStage's testing
+strategy.
+- **Output:** reuse inventory recorded in `docs/RESEARCH.md`; M3 plan updated; ADR-0005
+  finalized.
+
 ### S1 — Client audio chain on real phones (the highest-risk unknown)
 Throwaway page: two stems playing, `signalsmith-stretch` shifting ±3 semitones live, mic
 open with `pitchy` tracking — all simultaneously.
 - **Pass:** 10 continuous minutes on a mid-range Android (~3-year-old class) and an iPhone
   with no audio dropouts, responsive UI, stable pitch readout; shift artifacts acceptable
   by ear at ±3 st (note the ± where they stop being acceptable).
+- **Also resolve here:** mic-constraint policy while a backing track plays. Rangefinder's
+  production guardrail is all processing OFF (echoCancellation included) for pitch
+  accuracy, but scoring-during-playback may need echoCancellation to reject
+  backing-track bleed. Test both; record the winner in ARCHITECTURE §3.
 - **Fail →** fallback designs, in order: reduce to single pre-mixed instrumental stem;
   server-side pre-rendered shifted variants (kills instant key preview; adds render cost).
 
@@ -47,6 +59,11 @@ Bluetooth.
 Lando signs off Phase 1.
 
 ## Phase 1 — MVP build (approval required per milestone)
+
+Working agreement (Lando, 2026-08-28): each approved milestone is built end-to-end and
+delivered as one reviewable draft PR — no mid-milestone check-ins except on blockers or
+genuine scope questions. Beta cost control: per-user upload quotas sized so worst-case
+GPU spend stays under **~$50/month**, finalized from S2's measured cost/song.
 
 | Milestone | Scope | Done means |
 |---|---|---|

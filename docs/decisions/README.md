@@ -18,7 +18,7 @@ get it merged.
 | 0002 | Cloudflare as control plane (Workers, D1, R2, Queues) |
 | 0003 | RunPod serverless GPU for separation + analysis |
 | 0004 | signalsmith-stretch (MIT) for pitch shifting; Rubber Band rejected |
-| 0005 | pitchy (McLeod Pitch Method) for real-time pitch detection |
+| 0005 | McLeod Pitch Method detection — port the in-house Rangefinder engine |
 | 0006 | Single-method email-OTP auth |
 | 0007 | Copyright posture: per-user processing, no dedup, no export |
 | 0008 | Portable SPA now, Capacitor for iOS later (floor iOS 14.5) |

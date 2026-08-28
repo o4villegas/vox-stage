@@ -65,8 +65,8 @@ flowchart TB
 | Stem playback | Web Audio graph; per-stem gain (instrumental up, vocal guide as learning aid) | standard Web Audio |
 | Pitch shift ("sync") | `signalsmith-stretch` WASM AudioWorklet; all stems shifted equally, tempo preserved | R20; ADR-0004 |
 | EQ | `BiquadFilterNode` peaking/notch to attenuate a profile-flagged problem frequency | R24 |
-| Mic capture | `getUserMedia` with `echoCancellation: true`; NO reliance on noiseSuppression/autoGainControl (absent in Safari) | R24 |
-| Pitch tracking | `pitchy` (McLeod Pitch Method + clarity gate) in an AudioWorklet | R16, R19; ADR-0005 |
+| Mic capture | `getUserMedia`; noiseSuppression/autoGainControl unavailable in Safari anyway (R24). Rangefinder's production guardrail: ALL processing (echoCancellation included) OFF for pitch accuracy — but scoring-while-playback may need echoCancellation against backing-track bleed. **[open question — resolved empirically in Spike S1]** | R24; Rangefinder |
+| Pitch tracking | McLeod Pitch Method + clarity gate in an AudioWorklet — port the in-house Rangefinder MPM engine (accuracy-harness-verified); `pitchy` as reference/fallback | R16, R19; ADR-0005 |
 | Scoring | sung F0 vs reference melody contour, time-shifted by calibrated latency offset; octave-tolerant, cents-error based **[judgment — spike S3/S4 tunes it]** | R26 |
 | Calibration | onboarding step: play beep → capture via mic → cross-correlate for round-trip offset; seed from `outputLatency`+`baseLatency` where available (Safari 18.4+); warn on Bluetooth audio; fall back to unscored practice mode if calibration fails | R26 |
 
@@ -136,6 +136,9 @@ webhook → Worker validates job token, updates D1 → client sees `ready`.
 **Profile capture:** guided in-browser exercise (sirens/glissando + sustained comfortable
 notes) through the pitch tracker → range floor/ceiling + comfortable tessitura band
 (percentile-based **[judgment — method versioned in `method_version`]**) → saved to D1.
+Base implementation ports Rangefinder's proven capture flow and MPM engine (Lando,
+2026-08-28); the S0 audit decides port-vs-rewrite per piece, and Rangefinder's
+frozen-baseline accuracy-harness pattern becomes VoxStage's pitch-engine regression test.
 
 **Sync recommendation:** compare song melody distribution (e.g., 5th–95th percentile band)
 against user tessitura → propose the semitone shift that best centers the melody in the
@@ -160,6 +163,8 @@ summary → save to `performances`.
 - GPU: derived **<$0.01/song** (R9 pricing × R13 third-party runtimes) — **unmeasured**.
 - Managed-API alternative: ~$0.15–0.20/song (R14) — the swappable fallback, 15–20×.
 - R2: $0.015/GB-mo, zero egress (R5); Workers Paid $5/mo; Queues ~$0.40/M ops (R6).
+- Beta design ceiling: **~$50/month GPU spend** (Lando, 2026-08-28); per-user quotas
+  sized to it once S2 measures real cost/song.
 
 ## 10. iOS path (post-MVP)
 
