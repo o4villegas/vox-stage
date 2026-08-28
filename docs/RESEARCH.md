@@ -234,6 +234,21 @@ the cited pages.
   AVAudioSession directly and likely eliminate it — strengthening ADR-0008's App Store
   phase; (d) headphones mode sidesteps it entirely.
 
+- **R44.** S4 first device run **FAILED ITS VALIDITY CHECK — harness defect, device not
+  judged** (iPhone iOS 18.7, Safari, pages.dev, 2026-08-28 ~22:15Z): runs
+  [−1934.3, 649.8, 1126.8, 63.6, 636.9] ms, sd 1075.6 → gate fail. A negative round trip
+  is physically impossible, proving the v1 alignment reference (first-worklet-callback
+  time stamp) is unreliable on iOS WebKit — the pre-flagged untested assumption. The
+  correlator core itself remains proven (R36). The single physically plausible value,
+  **63.6 ms, is recorded as hypothesis only** (would be an excellent RTT; one clean-looking
+  value in an invalid series is not a result). **Harness v2** (committed, redeploy
+  pending): every capture block stamped with worklet context time, mid-stream anchoring,
+  continuity check from stamps, and validity rejection (0 < RTT < 1000 ms, peak ≥ 0.4,
+  gap < 5 ms) with auto-retry up to 8 chirps for 5 valid. v2 verified headlessly: in a
+  no-loopback environment it rejected all 8 attempts (peak 0.032) instead of averaging
+  garbage, and flagged an 8.7 ms capture gap. Roadmap fallback (manual tap-sync) remains
+  the designed next step if v2 also fails on device.
+
 ## Absence claims (inherently T2 — cannot prove a negative)
 
 - **R33.** No product found that combines: user-uploaded songs + stem separation + persistent

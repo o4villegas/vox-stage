@@ -12,7 +12,7 @@ results get recorded as new entries in docs/RESEARCH.md.
 | S1 client audio chain | stretch + pitchy bench, headless Chromium | **PASS on desktop CPU** (R35): stretch 22.3× realtime, pitchy 3,824 win/s @ 1.5 mean cents | iPhone iOS 18.7: **playback+shifter PASS twice** — in-app (R39) and real Safari (R40) | **mic half blocked on the artifact host in ALL browsers (R40)** — needs the wrangler pages.dev deploy below (+ long soak, EC A/B) |
 | S2 RunPod pipeline | Docker Hub base tag verified; worker+driver written | not run | needs `RUNPOD_API_KEY` (+ endpoint, test song URL) | **blocked: no RunPod credentials in this environment** |
 | S3 melody extraction | scoring math property tests | **PASS** (R37) | `eval_pyin.py` on real stems (runs after S2) | client half done |
-| S4 latency calibration | cross-correlation unit tests | **PASS** (R36): 0-sample error at SNR ≈ 6 dB | blocked on the artifact host in all browsers — the frame doesn't delegate mic permission (R40) | math proven; **needs the pages.dev deploy** |
+| S4 latency calibration | cross-correlation unit tests; v2 rejection logic verified headless | **PASS math** (R36); **first device run invalid** — v1 alignment broke on iOS (impossible negative RTT, R44) | harness **v2** committed (block-stamp alignment + validity gating); **redeploy to pages.dev pending** (desktop bridge was down), then re-run on iPhone | in progress |
 
 ## Running the device pages (S1, S4)
 
