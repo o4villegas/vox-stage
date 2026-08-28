@@ -183,6 +183,19 @@ the cited pages.
 - **R32 (T2).** Participation signal (survey): 29% sang karaoke at home/with friends, 25% in
   a karaoke bar, 48% never. https://www.news.market.us/karaoke-statistics/
 
+- **R40.** Safari retest on the same iPhone (genuine Safari UA `Version/26.6 … Safari/604.1`,
+  2026-08-28 21:31Z, via the Phone Lab artifact): **identical `NotAllowedError` with no
+  permission prompt** — same as the in-app run (R39). Root cause revised: the claude.ai
+  artifact viewer embeds pages in an iframe that does **not delegate microphone permission
+  (Permissions Policy)**, so `getUserMedia` fails in EVERY browser before the OS can
+  prompt; the earlier "open it in Safari" advice was wrong. Consequences: the artifact
+  route is valid ONLY for playback-plane tests; mic-dependent spikes (S1 tracker, S4
+  calibration) require a top-level HTTPS host (Cloudflare Pages per `spikes/README.md`,
+  or equivalent). Also in this run: **playback plane re-validated in real Safari** —
+  shifter ok, clock drift 28.3 ms over a 7 s soak, 0 long tasks, outputLatency 12.3 ms —
+  and the artifact's fixed self-publish return loop confirmed working (delivered
+  round-trip at 21:32:08Z).
+
 ## Absence claims (inherently T2 — cannot prove a negative)
 
 - **R33.** No product found that combines: user-uploaded songs + stem separation + persistent
