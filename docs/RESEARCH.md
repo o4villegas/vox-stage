@@ -271,6 +271,22 @@ the cited pages.
   GITHUB_TOKEN cannot create the Pages site. Spike pages now serve at
   https://o4villegas.github.io/vox-stage/ from `gh-pages`.
 
+- **R47.** S4 v3 device run (same iPhone, 2026-08-29 ~23:05Z): the raised peak floor
+  **worked** — all six periodic-noise lock-ons were rejected (peaks 0.365–0.445 < 0.6;
+  they again form a comb, spacing ~227 ms — the rhythmic interferer persisted at a
+  slightly different tempo). One valid run: **66.7 ms, peak 0.815**; one more strong
+  match (**73.7 ms, peak 0.821**) rejected solely for a 1.33 s capture gap. **Aggregate
+  across both sessions, every high-confidence match (peak ≥ 0.80): 66.7, 66.7, 73.7,
+  74.2 ms — total spread 7.5 ms**, well inside the ±20 ms repeatability gate; working
+  value: RTT ≈ 70 ms on this device (vs the 100 ms desktop-Safari reference, R26).
+  Formal in-run gate (5 valid chirps, sd ≤ 20 ms) not achieved: 6/8 attempts consumed by
+  environmental rhythmic audio, 1/8 by the gap. Two production notes: (a) a >1 s capture
+  stall shortly after mic engagement recurred in both sessions — production calibration
+  should discard the first chirp / wait ~2 s after mic open; (b) noisy rhythmic
+  environments are the realistic venue condition — calibration UX must detect and
+  retry, exactly as the v3 gating does. Gate disposition (accept on aggregated evidence
+  vs. one more quiet-room run) is Lando's call, logged when made.
+
 ## Absence claims (inherently T2 — cannot prove a negative)
 
 - **R33.** No product found that combines: user-uploaded songs + stem separation + persistent
