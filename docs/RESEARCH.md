@@ -249,6 +249,45 @@ the cited pages.
   garbage, and flagged an 8.7 ms capture gap. Roadmap fallback (manual tap-sync) remains
   the designed next step if v2 also fails on device.
 
+- **R45.** S4 v2 device run (iPhone iOS 18.7, Safari, GitHub Pages host, 2026-08-29
+  ~22:55Z): **the v2 block-stamp alignment is validated** — no impossible values, and the
+  two high-confidence matches (peak ≈ 0.80) measured **66.7 ms and 74.2 ms round-trip**,
+  agreeing within 7.5 ms (inside the ±20 ms gate; the 74.2 run was auto-rejected only for
+  a 1.26 s capture gap elsewhere in its buffer). The six weak matches (peak 0.386–0.45)
+  form an exact comb: 386.6/628.6 and 404.4/646.3/888.1/1130.0 ms, spacing **241.9 ±
+  0.1 ms** — the correlator locking onto a periodic ambient sound (~4.13 Hz; e.g., ~124
+  BPM audio) rather than the chirp **[interpretation: judgment, quantitatively
+  supported]**. Formal gate: FAIL (sd 303.7 across contaminated accepts). Root cause:
+  v2's peak validity floor (≥ 0.4) admits noise lock-ons. **Harness v3**: floor raised
+  to ≥ 0.6 (cleanly separates the 0.80 real cluster from the 0.45 noise cluster), page
+  copy warns to pause music/TV. Working hypothesis pending the v3 rerun: true built-in
+  speaker↔mic RTT ≈ 70 ms on this device — notably better than the 100 ms desktop-Safari
+  reference (R26), and very workable for calibrated scoring.
+- **R46.** GitHub Pages auto-enablement via `gh-pages` branch push **still works**
+  (2026-08-29, empirical): pushing an orphan `gh-pages` branch to the public repo
+  triggered GitHub's dynamic "pages build and deployment" run (conclusion: success, run
+  33279499322) with no settings interaction; the Actions-based `configure-pages`
+  `enablement: true` route had failed ("Resource not accessible by integration") because
+  GITHUB_TOKEN cannot create the Pages site. Spike pages now serve at
+  https://o4villegas.github.io/vox-stage/ from `gh-pages`.
+
+- **R47.** S4 v3 device run (same iPhone, 2026-08-29 ~23:05Z): the raised peak floor
+  **worked** — all six periodic-noise lock-ons were rejected (peaks 0.365–0.445 < 0.6;
+  they again form a comb, spacing ~227 ms — the rhythmic interferer persisted at a
+  slightly different tempo). One valid run: **66.7 ms, peak 0.815**; one more strong
+  match (**73.7 ms, peak 0.821**) rejected solely for a 1.33 s capture gap. **Aggregate
+  across both sessions, every high-confidence match (peak ≥ 0.80): 66.7, 66.7, 73.7,
+  74.2 ms — total spread 7.5 ms**, well inside the ±20 ms repeatability gate; working
+  value: RTT ≈ 70 ms on this device (vs the 100 ms desktop-Safari reference, R26).
+  Formal in-run gate (5 valid chirps, sd ≤ 20 ms) not achieved: 6/8 attempts consumed by
+  environmental rhythmic audio, 1/8 by the gap. Two production notes: (a) a >1 s capture
+  stall shortly after mic engagement recurred in both sessions — production calibration
+  should discard the first chirp / wait ~2 s after mic open; (b) noisy rhythmic
+  environments are the realistic venue condition — calibration UX must detect and
+  retry, exactly as the v3 gating does. **Gate disposition: ACCEPTED on aggregated
+  evidence by Lando (2026-08-29, in-session) — S4 closes as pass-with-documented-
+  deviation (4 high-confidence measurements across 2 sessions instead of 5 in one run).**
+
 ## Absence claims (inherently T2 — cannot prove a negative)
 
 - **R33.** No product found that combines: user-uploaded songs + stem separation + persistent
