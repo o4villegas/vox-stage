@@ -284,8 +284,9 @@ the cited pages.
   stall shortly after mic engagement recurred in both sessions — production calibration
   should discard the first chirp / wait ~2 s after mic open; (b) noisy rhythmic
   environments are the realistic venue condition — calibration UX must detect and
-  retry, exactly as the v3 gating does. Gate disposition (accept on aggregated evidence
-  vs. one more quiet-room run) is Lando's call, logged when made.
+  retry, exactly as the v3 gating does. **Gate disposition: ACCEPTED on aggregated
+  evidence by Lando (2026-08-29, in-session) — S4 closes as pass-with-documented-
+  deviation (4 high-confidence measurements across 2 sessions instead of 5 in one run).**
 
 ## Absence claims (inherently T2 — cannot prove a negative)
 
