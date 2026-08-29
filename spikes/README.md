@@ -16,10 +16,13 @@ results get recorded as new entries in docs/RESEARCH.md.
 
 ## Running the device pages (S1, S4)
 
-**DEPLOYED (2026-08-28, via the from-desktop bridge + Lando's wrangler login):**
-**https://voxstage-spikes.pages.dev** — `/s1/` and `/s4/`, Cloudflare Pages project
-`voxstage-spikes` on Lando's account. Mic prompts normally here (top-level HTTPS) —
-unlike the claude.ai artifact host, whose iframe blocks mic in all browsers (R40).
+**PRIMARY HOST (2026-08-29): https://o4villegas.github.io/vox-stage/** — `/s1/` and
+`/s4/`, served from the `gh-pages` branch (auto-enabled by pushing it, R46; updates =
+push new files to `gh-pages`, or let `.github/workflows/spike-pages.yml` do it on merges
+to main touching `/spikes`). Older mirror at https://voxstage-spikes.pages.dev
+(Cloudflare Pages, deployed via the desktop bridge; its `/s4/` runs the outdated v1
+harness until redeployed). Mic prompts normally on both (top-level HTTPS) — unlike the
+claude.ai artifact host, whose iframe blocks mic in all browsers (R40).
 
 Open it on each phone, run both tests, tap **Copy results JSON**, and paste the JSON back
 into the session — it gets recorded in docs/RESEARCH.md against the gates.
