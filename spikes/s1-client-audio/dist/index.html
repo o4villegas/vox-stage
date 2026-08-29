@@ -1,0 +1,27 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VoxStage Spike S1 — client audio chain</title>
+<style>
+  body { font: 16px system-ui; margin: 1rem; max-width: 40rem; background:#111; color:#eee; }
+  button { font-size: 1.1rem; padding: .6rem 1rem; margin: .3rem 0; }
+  .row { margin: .8rem 0; }
+  input[type=range] { width: 100%; }
+  #pitch { font-size: 1.4rem; min-height: 2rem; color: #7fdc7f; }
+  pre { background:#000; padding:.6rem; overflow:auto; font-size:.75rem; }
+  #log { height: 8rem; }
+</style>
+<h2>Spike S1 — stems + live pitch-shift + mic tracking</h2>
+<p>Pass gate: 10 min, no dropouts, responsive UI, stable pitch readout (docs/ROADMAP.md).</p>
+<button id="startBtn">1 · Start audio (stems + shifter)</button>
+<div class="row">Semitones: <b id="semiVal">3</b>
+  <input id="semi" type="range" min="-7" max="7" step="1" value="3"></div>
+<div class="row">Pad stem gain <input id="padGain" type="range" min="0" max="1.5" step="0.05" value="1"></div>
+<div class="row">Rhythm stem gain <input id="rhyGain" type="range" min="0" max="1.5" step="0.05" value="1"></div>
+<div class="row"><label><input id="ecToggle" type="checkbox"> echoCancellation ON (test both — Rangefinder guardrail says OFF)</label></div>
+<button id="micBtn">2 · Enable mic + pitch tracking</button>
+<div id="pitch">—</div>
+<button id="copyBtn">Copy results JSON</button>
+<pre id="stats"></pre>
+<pre id="log"></pre>
+<script type="module" src="bundle.js"></script>

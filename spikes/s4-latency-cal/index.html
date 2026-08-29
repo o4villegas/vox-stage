@@ -1,0 +1,136 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VoxStage Spike S4 — latency calibration</title>
+<style>
+  body { font: 16px system-ui; margin: 1rem; max-width: 40rem; background:#111; color:#eee; }
+  button { font-size: 1.1rem; padding: .6rem 1rem; }
+  table { border-collapse: collapse; margin: 1rem 0; }
+  td, th { border: 1px solid #444; padding: .3rem .8rem; }
+  pre { background:#000; padding:.6rem; overflow:auto; font-size:.75rem; }
+</style>
+<h2>Spike S4 — round-trip latency calibration</h2>
+<p>Plays 5 chirps through the speaker and finds each in the mic signal.
+Pass gate: wired/built-in spread ±20 ms (docs/ROADMAP.md). Volume up, quiet room.
+Run once on built-in speaker+mic, once on Bluetooth if you use it.</p>
+<button id="run">Run calibration (5 chirps)</button>
+<table id="tbl"><tr><th>#</th><th>round-trip ms</th><th>peak</th></tr></table>
+<pre id="out"></pre>
+<button id="copy">Copy results JSON</button>
+<script type="module">
+import { makeChirp, findOffset } from "./xcorr.mjs";
+const $ = (id) => document.getElementById(id);
+
+/* v2 alignment: the worklet stamps EVERY block with its context time, so the
+ * recording is anchored to the audio clock mid-stream rather than by a single
+ * first-callback stamp (which proved unreliable on iOS WebKit — an impossible
+ * negative round trip in the first device run). Continuity is verified from
+ * the stamps; impossible results are rejected instead of averaged. */
+const REC_CODE = `
+class Rec extends AudioWorkletProcessor {
+  process(inputs){
+    const ch = inputs[0] && inputs[0][0];
+    if (ch && ch.length) this.port.postMessage({ t: currentTime, d: ch.slice(0) });
+    return true;
+  }
+}
+try { registerProcessor("rec", Rec); } catch (e) { /* already registered on rerun */ }`;
+
+let workletReady = false;
+async function once(ctx, micSource, chirpBuf, chirp) {
+  if (!workletReady) {
+    await ctx.audioWorklet.addModule(URL.createObjectURL(new Blob([REC_CODE], { type: "application/javascript" })));
+    workletReady = true;
+  }
+  const rec = new AudioWorkletNode(ctx, "rec");
+  const chunks = []; // { t: context time of block start, d: samples, base: index }
+  let total = 0;
+  rec.port.onmessage = (e) => {
+    chunks.push({ t: e.data.t, d: e.data.d, base: total });
+    total += e.data.d.length;
+  };
+  micSource.connect(rec);
+
+  const src = ctx.createBufferSource();
+  src.buffer = chirpBuf;
+  src.connect(ctx.destination);
+  const t0 = ctx.currentTime + 0.35;
+  src.start(t0);
+
+  await new Promise((ok) => setTimeout(ok, 1800));
+  micSource.disconnect(rec);
+  try { rec.disconnect(); } catch {}
+  if (!chunks.length) return { error: "no mic data captured" };
+
+  const all = new Float32Array(total);
+  for (const c of chunks) all.set(c.d, c.base);
+
+  // continuity check from the per-block stamps (gaps = dropped capture blocks)
+  let maxGapMs = 0;
+  for (let i = 1; i < chunks.length; i++) {
+    const expectedDt = chunks[i - 1].d.length / ctx.sampleRate;
+    const gap = Math.abs((chunks[i].t - chunks[i - 1].t) - expectedDt) * 1000;
+    if (gap > maxGapMs) maxGapMs = gap;
+  }
+
+  // anchor on the block whose stamp is closest to t0 (mid-stream, not an edge)
+  let anchor = chunks[0];
+  for (const c of chunks) if (Math.abs(c.t - t0) < Math.abs(anchor.t - t0)) anchor = c;
+  const expected = Math.round(anchor.base + (t0 - anchor.t) * ctx.sampleRate);
+
+  const { lag, peak } = findOffset(all, chirp);
+  const roundTripMs = ((lag - expected) / ctx.sampleRate) * 1000;
+  // validity: a round trip must be positive and under 1 s, with a real match
+  const valid = roundTripMs > 0 && roundTripMs < 1000 && peak >= 0.4 && maxGapMs < 5;
+  return { roundTripMs, peak, maxGapMs, valid };
+}
+
+$("run").onclick = async () => {
+  $("run").disabled = true;
+  try {
+    const ctx = new AudioContext();
+    await ctx.resume();
+    const stream = await navigator.mediaDevices.getUserMedia({
+      audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false },
+    });
+    const micSource = ctx.createMediaStreamSource(stream);
+    const chirp = makeChirp(ctx.sampleRate);
+    const chirpBuf = ctx.createBuffer(1, chirp.length, ctx.sampleRate);
+    chirpBuf.getChannelData(0).set(chirp);
+
+    const runs = [], rejected = [];
+    for (let attempt = 1; attempt <= 8 && runs.length < 5; attempt++) {
+      const r = await once(ctx, micSource, chirpBuf, chirp);
+      const label = r.error ? r.error
+        : `${r.roundTripMs.toFixed(1)} ms · peak ${r.peak.toFixed(3)} · gap ${r.maxGapMs.toFixed(1)} ms`;
+      if (r.valid) {
+        runs.push(r);
+        $("tbl").insertAdjacentHTML("beforeend",
+          `<tr><td>${runs.length}</td><td>${r.roundTripMs.toFixed(1)}</td><td>${r.peak.toFixed(3)}</td></tr>`);
+      } else {
+        rejected.push(label);
+        $("tbl").insertAdjacentHTML("beforeend",
+          `<tr><td>✗</td><td colspan="2">rejected: ${label}</td></tr>`);
+      }
+    }
+    const vals = runs.map((r) => r.roundTripMs);
+    const mean = vals.length ? vals.reduce((a, b) => a + b) / vals.length : NaN;
+    const sd = vals.length ? Math.sqrt(vals.reduce((a, b) => a + (b - mean) ** 2, 0) / vals.length) : NaN;
+    const report = {
+      harness: "v2-blockstamp-alignment",
+      userAgent: navigator.userAgent, sampleRate: ctx.sampleRate,
+      baseLatency: ctx.baseLatency ?? null, outputLatency: ctx.outputLatency ?? null,
+      micSettings: stream.getAudioTracks()[0].getSettings(),
+      validRuns: runs.map((r) => ({ ms: +r.roundTripMs.toFixed(1), peak: +r.peak.toFixed(3), gapMs: +r.maxGapMs.toFixed(1) })),
+      rejected,
+      meanMs: +mean.toFixed(1), sdMs: +sd.toFixed(1),
+      passGate20ms: vals.length >= 5 && sd <= 20,
+    };
+    $("out").textContent = JSON.stringify(report, null, 2);
+    $("copy").onclick = () => navigator.clipboard.writeText(JSON.stringify(report, null, 2));
+  } catch (e) {
+    $("out").textContent = "ERROR: " + e;
+  }
+  $("run").disabled = false;
+};
+</script>
