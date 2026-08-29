@@ -287,6 +287,21 @@ the cited pages.
   retry, exactly as the v3 gating does. **Gate disposition: ACCEPTED on aggregated
   evidence by Lando (2026-08-29, in-session) — S4 closes as pass-with-documented-
   deviation (4 high-confidence measurements across 2 sessions instead of 5 in one run).**
+- **R48.** Demucs weights licensing (2026-08-29): the community RunPod worker's manifest
+  claims "htdemucs* weights are CC-BY-NC (non-commercial)" (T2, uncorroborated). Primary
+  sources: `facebookresearch/demucs` LICENSE = **MIT (Meta Platforms)**; README states
+  "Demucs is released under the MIT license" with **no weights-specific carve-out**;
+  weights are served from Meta's dl.fbaipublicfiles.com with no separate license
+  referenced in the loader (`demucs/pretrained.py`). Likely conflation with the MusDB
+  training dataset's research-only terms — a models-trained-on-restricted-data gray area
+  shared industry-wide. Disposition: **no primary evidence of a non-commercial weights
+  restriction**; logged for the pre-launch counsel review (with ADR-0007's items), and
+  S2 benchmarks `hdemucs_mmi` / `mdx_extra` alongside `htdemucs` so a fallback model is
+  measured either way.
+- **R49.** This cloud environment's egress policy blocks ALL RunPod API hosts
+  (rest.runpod.io, api.runpod.ai, api.runpod.io → connection rejected, 2026-08-29).
+  `RUNPOD_API_KEY` is present in fresh containers, but S2 cannot execute until the
+  environment's network policy allows the RunPod domains (Lando's environment settings).
 
 ## Absence claims (inherently T2 — cannot prove a negative)
 
