@@ -1,6 +1,6 @@
 # ADR-0002: Cloudflare as the control plane (Workers, D1, R2, Queues)
 
-**Status:** Proposed · 2026-08-28
+**Status:** Accepted 2026-08-29 (PR #1 merged on Lando's explicit instruction) · proposed 2026-08-28
 
 ## Context
 Lando's stated platform preference is Cloudflare, with Vercel/others acceptable only if

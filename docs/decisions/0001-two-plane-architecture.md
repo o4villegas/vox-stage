@@ -1,6 +1,6 @@
 # ADR-0001: Two-plane architecture — client real-time, server async analysis
 
-**Status:** Proposed · 2026-08-28
+**Status:** Accepted 2026-08-29 (PR #1 merged on Lando's explicit instruction) · proposed 2026-08-28
 
 ## Context
 VoxStage needs both millisecond-sensitive audio work (synced playback, pitch shifting,

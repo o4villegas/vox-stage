@@ -1,6 +1,6 @@
 # ADR-0003: RunPod serverless GPU for stem separation + song analysis
 
-**Status:** Proposed · 2026-08-28
+**Status:** Accepted 2026-08-29 (PR #1 merged on Lando's explicit instruction) · proposed 2026-08-28
 
 ## Context
 Stem separation (Demucs/htdemucs class) needs a GPU for acceptable speed. Cloudflare offers

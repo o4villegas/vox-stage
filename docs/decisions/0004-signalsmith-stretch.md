@@ -1,6 +1,6 @@
 # ADR-0004: signalsmith-stretch (MIT) for client-side pitch shifting
 
-**Status:** Proposed · 2026-08-28
+**Status:** Accepted 2026-08-29 (PR #1 merged on Lando's explicit instruction) · proposed 2026-08-28
 
 ## Context
 The "sync" feature shifts a full mix ±several semitones in real time, tempo preserved, on

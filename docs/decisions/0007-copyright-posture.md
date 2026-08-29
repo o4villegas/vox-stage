@@ -1,6 +1,6 @@
 # ADR-0007: Copyright posture — per-user processing, no dedup, no export
 
-**Status:** Proposed · 2026-08-28
+**Status:** Accepted 2026-08-29 (PR #1 merged on Lando's explicit instruction) · proposed 2026-08-28
 
 ## Context
 Users upload commercial recordings they do not own. The working industry posture — Moises
