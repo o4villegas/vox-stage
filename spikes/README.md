@@ -45,13 +45,25 @@ cd spikes/s1-client-audio && npm install && npx esbuild app.mjs --bundle --forma
 CHROMIUM_PATH=/opt/pw-browsers/chromium node bench.mjs
 ```
 
-## S2 execution (once credentials exist)
+## S2 execution (once `RUNPOD_API_KEY` is in the environment)
 
-1. Build & push the image: `docker build -t <registry>/voxstage-s2 spikes/s2-runpod-worker && docker push …`
-2. Create a serverless endpoint from it in the RunPod console (24 GB-class flex worker).
-3. `RUNPOD_API_KEY=… RUNPOD_ENDPOINT_ID=… AUDIO_GET_URL=… GPU_USD_PER_HR=0.69 node spikes/s2-runpod-worker/driver.mjs`
-4. Record: cold vs warm delay, execution seconds, dashboard-billed cost, stem quality
-   across 3 genres → gates in docs/ROADMAP.md.
+Key-only path — try before building anything:
 
-Provide the API key as an environment variable in the cloud-environment settings (or
-run the driver from your own machine) — never paste it into chat or commit it.
+1. **Endpoint**: check whether a usable Demucs worker image is already published
+   (start from the community repo noted in R11 — verify its README for a registry
+   image ref) and create a serverless endpoint via RunPod's REST API (24 GB-class flex
+   worker, e.g. L4/A5000). If no published image exists, fall back to building
+   `spikes/s2-runpod-worker/Dockerfile` (needs Docker — Lando's machine via the
+   from-desktop bridge, or RunPod's GitHub-build integration if offered).
+2. **Test audio**: use a public-domain recording URL (e.g., from Wikimedia Commons) as
+   `AUDIO_GET_URL` — legal, and reachable by RunPod. `put_urls` may be omitted: the
+   handler then measures separation without uploading stems (timings are the gate data;
+   stem-quality listening needs the uploads and can be a second pass).
+3. **Run twice** (cold, then warm):
+   `RUNPOD_API_KEY=… RUNPOD_ENDPOINT_ID=… AUDIO_GET_URL=… GPU_USD_PER_HR=0.69 node spikes/s2-runpod-worker/driver.mjs`
+4. **Record**: delayTime (cold-start), executionTime, dashboard-billed cost/run, and —
+   with uploads — stem quality across 3 genres → gates in docs/ROADMAP.md.
+
+The key lives ONLY as an environment variable (cloud-environment settings, or Lando's
+own machine) — never in chat, never committed. NOTE: env-var changes reach newly
+provisioned containers; a long-running session's container keeps its original env.
