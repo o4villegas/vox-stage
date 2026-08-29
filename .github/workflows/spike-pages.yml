@@ -1,0 +1,44 @@
+# Publishes the Phase 0 spike test pages to GitHub Pages so device tests
+# (mic requires a top-level HTTPS origin) can run without a manual deploy.
+# Approved by Lando 2026-08-30. Publishes /spikes content only.
+name: spike-pages
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "spikes/**"
+      - ".github/workflows/spike-pages.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Assemble site from spike pages
+        run: |
+          mkdir -p _site/s1 _site/s4
+          cp spikes/index.html _site/
+          cp spikes/s1-client-audio/dist/index.html spikes/s1-client-audio/dist/bundle.js _site/s1/
+          cp spikes/s4-latency-cal/index.html spikes/s4-latency-cal/xcorr.mjs _site/s4/
+      - uses: actions/configure-pages@v5
+        with:
+          enablement: true
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - id: deployment
+        uses: actions/deploy-pages@v5
