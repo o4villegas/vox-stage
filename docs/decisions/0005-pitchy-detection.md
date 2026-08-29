@@ -1,6 +1,6 @@
 # ADR-0005: McLeod Pitch Method for real-time pitch detection — port the in-house Rangefinder engine
 
-**Status:** Proposed · 2026-08-28 (revised same day after Lando confirmed prior-tech reuse)
+**Status:** Accepted 2026-08-29 (PR #1 merged on Lando's explicit instruction) · proposed 2026-08-28 (revised same day after Lando confirmed prior-tech reuse)
 
 ## Context
 Live scoring and profile capture need monophonic vocal F0 tracking in the browser at

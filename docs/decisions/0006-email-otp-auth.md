@@ -1,6 +1,6 @@
 # ADR-0006: Single-method email-OTP authentication
 
-**Status:** Proposed · 2026-08-28
+**Status:** Accepted 2026-08-29 (PR #1 merged on Lando's explicit instruction) · proposed 2026-08-28
 
 ## Context
 Lando's MVP pillar: "no multi-auth — keep it simple for dev." Separately, the app is headed

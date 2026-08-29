@@ -34,6 +34,9 @@ acting.
 
 ## Current state — UPDATE THIS SECTION AS IT CHANGES
 
+- **Architecture: ACCEPTED.** PR #1 merged 2026-08-29 on Lando's explicit in-session
+  instruction — `docs/ARCHITECTURE.md` is the working architecture and ADRs 0001–0008 are
+  Accepted.
 - **Phase:** Phase 0 **approved by Lando ("go", 2026-08-28) and in progress.** Spike code
   lives in `/spikes/` (throwaway — never graduates into the app). **No application code
   exists**; Phase 1 still needs its own approval, milestone by milestone.
@@ -55,8 +58,11 @@ acting.
   Pages deploy. Audit = Spike S0. Its production guardrail: echoCancellation,
   noiseSuppression, AND autoGainControl all OFF — "turning any of them on distorts the
   pitch reading."
-- **Open decisions awaiting Lando:** formal architecture sign-off (merge PR #1);
-  go-ahead to start Phase 0 spikes.
+- **Open items awaiting Lando:** `RUNPOD_API_KEY` in the cloud environment (unblocks S2) ·
+  from-desktop bridge online (unblocks S4-v2 redeploy + S0 completion) · his 20-second
+  S4-v2 rerun after redeploy · M1 approval after the Phase 0 exit report.
+- **Sibling session:** "VoxStage: Phase 0 completion + M1 plan" owns S2/S4/S0 completion,
+  the M1 plan doc, and the Phase 0 exit report. This session watches follow-up PRs.
 
 ## Repo map
 
