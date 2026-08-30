@@ -40,11 +40,12 @@ acting.
 - **Phase:** Phase 0 **approved by Lando ("go", 2026-08-28) and in progress.** Spike code
   lives in `/spikes/` (throwaway — never graduates into the app). **No application code
   exists**; Phase 1 still needs its own approval, milestone by milestone.
-- **Phase 0 status:** see the table in `spikes/README.md`. Sandbox-executable parts are
-  done and measured (R35–R37). Blockers: S1/S4 need runs on Lando's phones (pages built,
-  deploy instructions in `spikes/README.md`); S2 needs a `RUNPOD_API_KEY` (none in this
-  environment); S0 is half-done — the from-desktop connector disconnected mid-audit
-  (R34) — resume reading `/home/lando555/VoxFiles` when it returns.
+- **Phase 0 status:** see the table in `spikes/README.md`. S0 CLOSED (audit complete,
+  R50) · S1 CLOSED (pass on device; mic processing all-OFF confirmed, R39–R43) · S4
+  CLOSED (pass with documented deviation, RTT ≈ 70 ms, R45/R47) · S3 client half done
+  (R37). **Sole remaining blocker: S2** — the cloud environment's egress policy denies
+  all RunPod API hosts (R49); the key itself is present. Device pages current on both
+  hosts (GitHub Pages primary, Cloudflare mirror redeployed 2026-08-30).
 - **Product decisions confirmed by Lando (2026-08-28, T/F interview):** reuse prior
   VoxApp/VoxReport tech ("Rangefinder") for profile capture · accounts-first, no
   anonymous mode · 2-stem separation for MVP · live scoring is launch-blocking ·
@@ -55,17 +56,21 @@ acting.
   readable via the from-desktop MCP connector) — his deployed vocal-range PWA: in-house
   FFT-accelerated MPM pitch engine (`verify/mpm-fast.mjs` + engine in `index.html`),
   accuracy harness with frozen baseline (`verify/harness.mjs`), PWA shell, Cloudflare
-  Pages deploy. Audit = Spike S0. Its production guardrail: echoCancellation,
-  noiseSuppression, AND autoGainControl all OFF — "turning any of them on distorts the
-  pitch reading."
-- **Open items awaiting Lando:** `RUNPOD_API_KEY` in the cloud environment (unblocks S2) ·
-  from-desktop bridge online (unblocks S4-v2 redeploy + S0 completion) · his 20-second
-  S4-v2 rerun after redeploy · M1 approval after the Phase 0 exit report.
-- **Session note:** two API-spawned sibling sessions both failed environment init
-  ("Setup script failed", non-recoverable — sessions `…4RUPwxTEbksDLb9goDAwNY` and
-  `…7hQ6ryMT5X1Nt8AuJXkCTE`, 2026-08-29). Until Lando fixes the environment's setup
-  script, spawned sessions are unusable; the original session (vox-stage-51) owns
-  S2/S4/S0 completion, the M1 plan, and the Phase 0 exit report.
+  Pages deploy. Audit = Spike S0, **complete — reuse map in R50** (engine ports into a
+  worklet unmodified; the rAF/Analyser capture harness deliberately does not; tessitura
+  algorithm = minimal contiguous window ≥60% voiced time). Its production guardrail:
+  echoCancellation, noiseSuppression, AND autoGainControl all OFF — "turning any of them
+  on distorts the pitch reading."
+- **M1 plan: merged as plan of record** (PR #3, 2026-08-30) — `docs/M1-PLAN.md`. Its §6
+  decisions (framework, email provider, API token, naming, Biome) and the M1 go itself
+  are still open; merging the plan did NOT authorize the build (rule 1 stands).
+- **Open items awaiting Lando:** allow the RunPod API domains (`api.runpod.ai`,
+  `rest.runpod.io`, `api.runpod.io`) in the cloud environment's network policy, then
+  bounce the session — sole S2 blocker (R49) · the six §6 calls in `docs/M1-PLAN.md` ·
+  M1 approval after the Phase 0 exit report.
+- **Sessions:** do NOT spawn sibling sessions via the API — the environment's setup
+  script fails them on arrival ("Setup script failed", non-recoverable, verified twice
+  2026-08-29). This session owns Phase 0 follow-ups, PR watching, and the exit report.
 
 ## Repo map
 
@@ -75,6 +80,7 @@ acting.
 | `docs/ARCHITECTURE.md` | Full system architecture: planes, components, flows, data model |
 | `docs/RESEARCH.md` | Verified fact base with sources, dates, and confidence tiers |
 | `docs/ROADMAP.md` | Phase 0 validation spikes (with pass/fail gates), MVP scope, milestones |
+| `docs/M1-PLAN.md` | M1 build plan of record — tooling, layout, auth spec, CI; §6 = open decisions |
 | `docs/decisions/` | ADRs — one decision per file; process in its README |
 
 ## Constraint quick-reference
