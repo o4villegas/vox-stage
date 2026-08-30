@@ -4,20 +4,22 @@
 # WHY THIS EXISTS: the spike's own Dockerfile (alongside this file) is the shape a
 # production worker takes — deps and weights baked into the image. Building it needs a
 # container registry to push to, and this cloud session has no registry credentials
-# (ghcr.io push is denied for the session's git-scoped GitHub token) and cannot even pull
-# the base image locally (Docker Hub's blob CDN is outside the session's egress
-# allowlist). So for the spike we boot the stock PyTorch image and install on top at
-# worker start.
+# (ghcr.io push is denied for the session's git-scoped GitHub token). So for the spike we
+# boot the stock PyTorch image and install on top at worker start.
+#
+# NO CURL, NO WGET, NO GIT: pytorch/pytorch:*-runtime ships python/pip and nothing else
+# for fetching. An earlier revision started the worker with `curl ... | bash`; curl did
+# not exist, bash got an empty script on stdin, exited 0, the container ended, and RunPod
+# restarted it forever with the job stuck IN_QUEUE and no worker logs to say why. Every
+# fetch here therefore goes through python's urllib.
 #
 # CONSEQUENCE FOR THE NUMBERS: cold-start / delayTime measured this way is INFLATED by
 # this install (pip + weights download) and is NOT representative of a baked image. Warm
 # executionTime — which is what the cost-per-song and p50 gates rest on — is unaffected,
 # because deps and weights are all resident before the handler starts serving.
 #
-# SELF-DIAGNOSING: a failing bootstrap under `set -e` just exits, and RunPod restarts the
-# container forever with the job stuck in queue and no way to see why (the REST API
-# exposes no worker logs). So instead every step is logged, and if anything fails we
-# still start a handler — one that returns the boot log as its job output.
+# SELF-DIAGNOSING: if anything fails we still start a handler — one that returns the boot
+# log as its job output — rather than exiting into an invisible restart loop.
 LOG=/bootstrap.log
 : > "$LOG"
 BOOT_OK=1
@@ -54,17 +56,23 @@ then step "FAILED: ffmpeg install"; BOOT_OK=0; fi
 for m in ${MODELS}; do
   step "preloading model ${m}"
   if ! python -c "from demucs.pretrained import get_model; get_model('${m}')" >>"$LOG" 2>&1; then
-    step "FAILED: preload ${m}"; BOOT_OK=0
+    # Preloading is an optimization, not a requirement: a model that fails here is
+    # fetched lazily on first use instead. Do NOT fail the boot for it — that would
+    # swap a perfectly good worker for the diagnostic handler.
+    step "WARN: preload ${m} failed (will be fetched lazily on first use)"
   fi
 done
 
 step "fetching handler from ${RAW}"
-if ! curl -sSL --retry 3 -o /handler.py "${RAW}?cb=$(date +%s)" >>"$LOG" 2>&1; then
-  step "FAILED: handler fetch"; BOOT_OK=0
-fi
-if [ -f /handler.py ] && ! python -c "import ast; ast.parse(open('/handler.py').read())" >>"$LOG" 2>&1; then
-  step "FAILED: handler did not parse"; BOOT_OK=0
-fi
+if ! HANDLER_URL="${RAW}" python - >>"$LOG" 2>&1 <<'PY'
+import os, urllib.request
+url = os.environ["HANDLER_URL"] + "?cb=" + str(os.getpid())
+data = urllib.request.urlopen(url, timeout=60).read()
+open("/handler.py", "wb").write(data)
+compile(data, "/handler.py", "exec")   # fail loudly on a truncated/HTML response
+print("handler ok:", len(data), "bytes")
+PY
+then step "FAILED: handler fetch/parse"; BOOT_OK=0; fi
 
 step "bootstrap done BOOT_OK=${BOOT_OK}"
 
