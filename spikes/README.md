@@ -4,13 +4,13 @@ Approved by Lando 2026-08-28 ("go"). All code here is **throwaway** — it prove
 then production code is written fresh (docs/ROADMAP.md). Gates live in the roadmap;
 results get recorded as new entries in docs/RESEARCH.md.
 
-## Status — 2026-08-28
+## Status — 2026-08-30
 
 | Spike | Sandbox-executable part | Result | Device/credential part | Status |
 |---|---|---|---|---|
-| S0 Rangefinder audit | read via desktop connector | partial (R34) | — | **blocked mid-audit: connector disconnected; resume when back** |
-| S1 client audio chain | stretch + pitchy bench, headless Chromium | **PASS on desktop CPU** (R35): stretch 22.3× realtime, pitchy 3,824 win/s @ 1.5 mean cents | iPhone iOS 18.7: **playback+shifter PASS twice** — in-app (R39) and real Safari (R40) | **mic half blocked on the artifact host in ALL browsers (R40)** — needs the wrangler pages.dev deploy below (+ long soak, EC A/B) |
-| S2 RunPod pipeline | Docker Hub base tag verified; worker+driver written | not run | needs `RUNPOD_API_KEY` (+ endpoint, test song URL) | **blocked: no RunPod credentials in this environment** |
+| S0 Rangefinder audit | read via desktop connector | partial (R34) → **complete (R50)**: FFT engine confirmed deployed; engine ports, capture harness doesn't; profile algorithm + harness methodology mapped | — | **CLOSED — audit complete, reuse map in R50** |
+| S1 client audio chain | stretch + pitchy bench, headless Chromium | **PASS on desktop CPU** (R35): stretch 22.3× realtime, pitchy 3,824 win/s @ 1.5 mean cents | iPhone iOS 18.7: **playback+shifter PASS twice** (R39, R40); mic runs on GitHub Pages settled the EC question — **all processing OFF** (R41 clean, R42 EC-on collapse) | **CLOSED — pass; guardrail confirmed on device** |
+| S2 RunPod pipeline | Docker Hub base tag verified; worker+driver written | not run | `RUNPOD_API_KEY` present in env | **blocked: environment egress policy denies RunPod API hosts (R49)** — allow the domains, bounce the session, then run the runbook below |
 | S3 melody extraction | scoring math property tests | **PASS** (R37) | `eval_pyin.py` on real stems (runs after S2) | client half done |
 | S4 latency calibration | xcorr unit tests (R36); v2/v3 harness iterations | v1 alignment invalid on iOS (R44) → v2 validated alignment (R45) → v3 gating rejects noise (R47) | iPhone RTT **≈ 70 ms, spread 7.5 ms across 2 sessions** (R45, R47) | **CLOSED — PASS with documented deviation, accepted by Lando 2026-08-29** |
 
@@ -19,9 +19,9 @@ results get recorded as new entries in docs/RESEARCH.md.
 **PRIMARY HOST (2026-08-29): https://o4villegas.github.io/vox-stage/** — `/s1/` and
 `/s4/`, served from the `gh-pages` branch (auto-enabled by pushing it, R46; updates =
 push new files to `gh-pages`, or let `.github/workflows/spike-pages.yml` do it on merges
-to main touching `/spikes`). Older mirror at https://voxstage-spikes.pages.dev
-(Cloudflare Pages, deployed via the desktop bridge; its `/s4/` runs the outdated v1
-harness until redeployed). Mic prompts normally on both (top-level HTTPS) — unlike the
+to main touching `/spikes`). Mirror at https://voxstage-spikes.pages.dev (Cloudflare
+Pages, deployed via the desktop bridge; redeployed 2026-08-30 from main `c9b09fe` — now
+serves the same v3 harness). Mic prompts normally on both (top-level HTTPS) — unlike the
 claude.ai artifact host, whose iframe blocks mic in all browsers (R40).
 
 Open it on each phone, run both tests, tap **Copy results JSON**, and paste the JSON back
@@ -45,7 +45,7 @@ cd spikes/s1-client-audio && npm install && npx esbuild app.mjs --bundle --forma
 CHROMIUM_PATH=/opt/pw-browsers/chromium node bench.mjs
 ```
 
-## S2 execution (once `RUNPOD_API_KEY` is in the environment)
+## S2 execution (key is in the environment; blocked on egress policy, R49)
 
 Key-only path — try before building anything:
 

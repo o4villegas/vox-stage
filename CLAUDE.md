@@ -40,11 +40,12 @@ acting.
 - **Phase:** Phase 0 **approved by Lando ("go", 2026-08-28) and in progress.** Spike code
   lives in `/spikes/` (throwaway — never graduates into the app). **No application code
   exists**; Phase 1 still needs its own approval, milestone by milestone.
-- **Phase 0 status:** see the table in `spikes/README.md`. Sandbox-executable parts are
-  done and measured (R35–R37). Blockers: S1/S4 need runs on Lando's phones (pages built,
-  deploy instructions in `spikes/README.md`); S2 needs a `RUNPOD_API_KEY` (none in this
-  environment); S0 is half-done — the from-desktop connector disconnected mid-audit
-  (R34) — resume reading `/home/lando555/VoxFiles` when it returns.
+- **Phase 0 status:** see the table in `spikes/README.md`. S0 CLOSED (audit complete,
+  R50) · S1 CLOSED (pass on device; mic processing all-OFF confirmed, R39–R43) · S4
+  CLOSED (pass with documented deviation, RTT ≈ 70 ms, R45/R47) · S3 client half done
+  (R37). **Sole remaining blocker: S2** — the cloud environment's egress policy denies
+  all RunPod API hosts (R49); the key itself is present. Device pages current on both
+  hosts (GitHub Pages primary, Cloudflare mirror redeployed 2026-08-30).
 - **Product decisions confirmed by Lando (2026-08-28, T/F interview):** reuse prior
   VoxApp/VoxReport tech ("Rangefinder") for profile capture · accounts-first, no
   anonymous mode · 2-stem separation for MVP · live scoring is launch-blocking ·
@@ -55,14 +56,18 @@ acting.
   readable via the from-desktop MCP connector) — his deployed vocal-range PWA: in-house
   FFT-accelerated MPM pitch engine (`verify/mpm-fast.mjs` + engine in `index.html`),
   accuracy harness with frozen baseline (`verify/harness.mjs`), PWA shell, Cloudflare
-  Pages deploy. Audit = Spike S0. Its production guardrail: echoCancellation,
-  noiseSuppression, AND autoGainControl all OFF — "turning any of them on distorts the
-  pitch reading."
-- **Open items awaiting Lando:** `RUNPOD_API_KEY` in the cloud environment (unblocks S2) ·
-  from-desktop bridge online (unblocks S4-v2 redeploy + S0 completion) · his 20-second
-  S4-v2 rerun after redeploy · M1 approval after the Phase 0 exit report.
-- **Sibling session:** "VoxStage: Phase 0 completion + M1 plan" owns S2/S4/S0 completion,
-  the M1 plan doc, and the Phase 0 exit report. This session watches follow-up PRs.
+  Pages deploy. Audit = Spike S0, **complete — reuse map in R50** (engine ports into a
+  worklet unmodified; the rAF/Analyser capture harness deliberately does not; tessitura
+  algorithm = minimal contiguous window ≥60% voiced time). Its production guardrail:
+  echoCancellation, noiseSuppression, AND autoGainControl all OFF — "turning any of them
+  on distorts the pitch reading."
+- **Open items awaiting Lando:** allow the RunPod API domains (`api.runpod.ai`,
+  `rest.runpod.io`, `api.runpod.io`) in the cloud environment's network policy, then
+  bounce the session — sole S2 blocker (R49) · review PR #3 (M1 plan, incl. its §6
+  decisions) and PR #6 (R48–R50 docs) · M1 approval after the Phase 0 exit report.
+- **Sessions:** do NOT spawn sibling sessions via the API — the environment's setup
+  script fails them on arrival ("Setup script failed", non-recoverable, verified twice).
+  This session owns Phase 0 follow-ups, PR watching, and the exit report.
 
 ## Repo map
 

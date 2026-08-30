@@ -302,6 +302,41 @@ the cited pages.
   (rest.runpod.io, api.runpod.ai, api.runpod.io → connection rejected, 2026-08-29).
   `RUNPOD_API_KEY` is present in fresh containers, but S2 cannot execute until the
   environment's network policy allows the RunPod domains (Lando's environment settings).
+  Re-probed ×4 across 2026-08-30: still blocked.
+- **R50.** S0 Rangefinder audit **COMPLETE** (2026-08-30, from-desktop bridge restored;
+  completes R34). Read in full: `verify/mpm-fast.mjs` (124 ln), `verify/harness.mjs`
+  (344 ln), `verify/splice-mpm.mjs` (124 ln), `index.html` (751 ln), `CLAUDE.md` deploy
+  protocol. Findings for VoxStage reuse:
+  - **Deployed engine = the FFT one.** Production `index.html` carries the spliced
+    FFT-accelerated `mpm` (body identical to `mpm-fast.mjs`); `public/index.html` is
+    byte-identical to root (`diff -q`); `v1_original.html` is the frozen O(n²) baseline,
+    never deployed.
+  - **Engine ports cleanly** (ADR-0005): `mpm(buf, sr)` is pure and dependency-free —
+    self-contained radix-2 FFT, exact prefix-sum `div` normalization, NSDF in Float32 to
+    mirror baseline truncation, byte-for-byte baseline peak picking (highest×0.93 +
+    parabolic interpolation), `typeof`-guarded MIN_HZ/MAX_HZ (60/1200 fallback). Drops
+    into an AudioWorklet unmodified.
+  - **Capture harness does NOT port:** the live path polls an AnalyserNode
+    (fftSize 2048) from `requestAnimationFrame` with wall-clock `dt` (clamped ≤0.1 s) —
+    hop timing is display-rate-dependent, so windows can repeat or skip vs the audio
+    clock. VoxStage's worklet-driven hop (128-sample blocks → ring buffer) is a
+    deliberate deviation, not a port. Production gates: RMS ≥ 0.008 pre-gate,
+    clarity ≥ 0.90 ingest, WIN 2048 / HOP 1024 (file path).
+  - **Profile algorithm (the actual reuse for vocal profiles):** per-semitone stats
+    E1–C6 (MIDI 28–84) {voiced time, mean clarity, cents jitter, onsets}; a note is
+    "active" at ≥0.35 s voiced and ≥6 gated frames; floor/ceiling = extreme active
+    notes; **tessitura = minimal contiguous note window holding ≥60% of voiced time**;
+    stretch = active notes outside the band; break candidates (needs ≥20 s voiced):
+    interior notes with mean clarity < range mean − 0.02 and/or cents stdev > 1.6× range
+    mean (both = "hard" flag, one = "soft"). Persisted as slim per-note aggregates
+    (localStorage there; D1 per the VoxStage data model).
+  - **Verification methodology worth copying:** harness gates = gate-agreement ≥99.5%
+    with zero unexcused disagreements (excusal border ±0.005 clarity), cents ≤0.5,
+    |Δclarity| ≤0.01, over a 128-case matrix ({sine, 5-harmonic, ±50-cent 5.5 Hz
+    vibrato, 1-octave glissando} × MIDI {28..84} × {44.1, 48} kHz × amp {0.3, 0.03});
+    splice justified only at ≥5× median speedup; splice tool `node --check`s a temp file
+    and renames atomically. House rule: harness must pass before deploying any change
+    touching detection logic.
 
 ## Absence claims (inherently T2 — cannot prove a negative)
 
@@ -321,7 +356,7 @@ the cited pages.
   noiseSuppression, autoGainControl all OFF ("turning any of them on distorts the pitch
   reading"). **Still unread:** full engine body (74/124 lines of `mpm-fast.mjs`),
   `index.html` app (33 KB), `harness.mjs`, `splice-mpm.mjs` — resume when the connector
-  returns.
+  returns. *(Audit completed 2026-08-30 — see R50.)*
 - **R35.** S1 sandbox bench (headless Chromium 141, container x86 CPU, 2026-08-28; code:
   `spikes/s1-client-audio/`): `signalsmith-stretch` rendered 60 s of 2-stem stereo mix at
   +3 semitones in 2.69 s wall — **22.3× realtime**. `pitchy` (MPM, 2048-sample windows,
