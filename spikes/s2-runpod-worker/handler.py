@@ -73,9 +73,13 @@ def handler(job):
     )
     timings["separate_s"] = round(time.time() - t1, 2)
     if proc.returncode != 0:
+        try:
+            boot = open("/bootstrap.log").read()[-3000:]
+        except Exception:
+            boot = "<no bootstrap log>"
         return {"error": "demucs failed", "returncode": proc.returncode,
                 "stderr": proc.stderr[-4000:], "model": model,
-                "versions": _versions(), "timings": timings}
+                "versions": _versions(), "timings": timings, "bootstrap_log": boot}
 
     outdir = os.path.join(workdir, model, "input")
     stems = {}
