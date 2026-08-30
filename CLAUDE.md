@@ -61,13 +61,16 @@ acting.
   algorithm = minimal contiguous window ≥60% voiced time). Its production guardrail:
   echoCancellation, noiseSuppression, AND autoGainControl all OFF — "turning any of them
   on distorts the pitch reading."
+- **M1 plan: merged as plan of record** (PR #3, 2026-08-30) — `docs/M1-PLAN.md`. Its §6
+  decisions (framework, email provider, API token, naming, Biome) and the M1 go itself
+  are still open; merging the plan did NOT authorize the build (rule 1 stands).
 - **Open items awaiting Lando:** allow the RunPod API domains (`api.runpod.ai`,
   `rest.runpod.io`, `api.runpod.io`) in the cloud environment's network policy, then
-  bounce the session — sole S2 blocker (R49) · review PR #3 (M1 plan, incl. its §6
-  decisions) and PR #6 (R48–R50 docs) · M1 approval after the Phase 0 exit report.
+  bounce the session — sole S2 blocker (R49) · the six §6 calls in `docs/M1-PLAN.md` ·
+  M1 approval after the Phase 0 exit report.
 - **Sessions:** do NOT spawn sibling sessions via the API — the environment's setup
-  script fails them on arrival ("Setup script failed", non-recoverable, verified twice).
-  This session owns Phase 0 follow-ups, PR watching, and the exit report.
+  script fails them on arrival ("Setup script failed", non-recoverable, verified twice
+  2026-08-29). This session owns Phase 0 follow-ups, PR watching, and the exit report.
 
 ## Repo map
 
@@ -77,6 +80,7 @@ acting.
 | `docs/ARCHITECTURE.md` | Full system architecture: planes, components, flows, data model |
 | `docs/RESEARCH.md` | Verified fact base with sources, dates, and confidence tiers |
 | `docs/ROADMAP.md` | Phase 0 validation spikes (with pass/fail gates), MVP scope, milestones |
+| `docs/M1-PLAN.md` | M1 build plan of record — tooling, layout, auth spec, CI; §6 = open decisions |
 | `docs/decisions/` | ADRs — one decision per file; process in its README |
 
 ## Constraint quick-reference
