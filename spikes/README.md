@@ -4,13 +4,13 @@ Approved by Lando 2026-08-28 ("go"). All code here is **throwaway** — it prove
 then production code is written fresh (docs/ROADMAP.md). Gates live in the roadmap;
 results get recorded as new entries in docs/RESEARCH.md.
 
-## Status — 2026-08-30
+## Status — 2026-08-31
 
 | Spike | Sandbox-executable part | Result | Device/credential part | Status |
 |---|---|---|---|---|
 | S0 Rangefinder audit | read via desktop connector | partial (R34) → **complete (R50)**: FFT engine confirmed deployed; engine ports, capture harness doesn't; profile algorithm + harness methodology mapped | — | **CLOSED — audit complete, reuse map in R50** |
 | S1 client audio chain | stretch + pitchy bench, headless Chromium | **PASS on desktop CPU** (R35): stretch 22.3× realtime, pitchy 3,824 win/s @ 1.5 mean cents | iPhone iOS 18.7: **playback+shifter PASS twice** (R39, R40); mic runs on GitHub Pages settled the EC question — **all processing OFF** (R41 clean, R42 EC-on collapse) | **CLOSED — pass; guardrail confirmed on device** |
-| S2 RunPod pipeline | Docker Hub base tag verified; worker+driver written | not run | `RUNPOD_API_KEY` present in env | **blocked: environment egress policy denies RunPod API hosts (R49)** — allow the domains, bounce the session, then run the runbook below |
+| S2 RunPod pipeline | handler **validated end-to-end on a real song** (R52): 216.6 s track, both stems, demucs 4.1.0 — CPU 0.45× realtime | egress unblocked; API reachable | **blocked on deployment shape (R51)**: RunPod serverless requires the handler baked into the image as `CMD`; a `dockerStartCmd` bootstrap on a generic image never claims jobs. Needs a built+pushed image (registry credentials) or a GPU Pod |
 | S3 melody extraction | scoring math property tests | **PASS** (R37) | `eval_pyin.py` on real stems (runs after S2) | client half done |
 | S4 latency calibration | xcorr unit tests (R36); v2/v3 harness iterations | v1 alignment invalid on iOS (R44) → v2 validated alignment (R45) → v3 gating rejects noise (R47) | iPhone RTT **≈ 70 ms, spread 7.5 ms across 2 sessions** (R45, R47) | **CLOSED — PASS with documented deviation, accepted by Lando 2026-08-29** |
 
@@ -45,24 +45,43 @@ cd spikes/s1-client-audio && npm install && npx esbuild app.mjs --bundle --forma
 CHROMIUM_PATH=/opt/pw-browsers/chromium node bench.mjs
 ```
 
-## S2 execution (key is in the environment; blocked on egress policy, R49)
+## S2 execution — deployment shape settled the hard way (R51)
 
-Key-only path — try before building anything:
+Egress and credentials are no longer the blocker; the **deployment shape** is. RunPod
+serverless requires the handler baked into the image as its `CMD`. A `dockerStartCmd`
+bootstrap over a generic image never claims jobs (three variants tried, R51), and the
+platform exposes no worker logs to tell you why. Do not retry that path.
 
-1. **Endpoint**: check whether a usable Demucs worker image is already published
-   (start from the community repo noted in R11 — verify its README for a registry
-   image ref) and create a serverless endpoint via RunPod's REST API (24 GB-class flex
-   worker, e.g. L4/A5000). If no published image exists, fall back to building
-   `spikes/s2-runpod-worker/Dockerfile` (needs Docker — Lando's machine via the
-   from-desktop bridge, or RunPod's GitHub-build integration if offered).
-2. **Test audio**: use a public-domain recording URL (e.g., from Wikimedia Commons) as
-   `AUDIO_GET_URL` — legal, and reachable by RunPod. `put_urls` may be omitted: the
-   handler then measures separation without uploading stems (timings are the gate data;
-   stem-quality listening needs the uploads and can be a second pass).
-3. **Run twice** (cold, then warm):
-   `RUNPOD_API_KEY=… RUNPOD_ENDPOINT_ID=… AUDIO_GET_URL=… GPU_USD_PER_HR=0.69 node spikes/s2-runpod-worker/driver.mjs`
-4. **Record**: delayTime (cold-start), executionTime, dashboard-billed cost/run, and —
-   with uploads — stem quality across 3 genres → gates in docs/ROADMAP.md.
+Two viable routes:
+
+1. **Baked image (production-shaped, preferred).** Build
+   `spikes/s2-runpod-worker/Dockerfile` and push to a registry RunPod can pull, then point
+   a template at it with no `dockerStartCmd`. Needs registry credentials — this cloud
+   session has none (ghcr.io push is denied for its git-scoped GitHub token), so it runs
+   on Lando's machine via the from-desktop bridge:
+
+   ```sh
+   docker build -t <registry>/voxstage-s2:1 spikes/s2-runpod-worker
+   docker push <registry>/voxstage-s2:1
+   ```
+
+   Then create the endpoint (24 GB-class flex worker, e.g. L4/A5000) and run the
+   benchmark below. Give the container generous disk — the SDK kills workers under 10 %
+   free (R51).
+
+2. **GPU Pod.** `/pods` in the REST API creates a Pod with shell access, sidestepping the
+   serverless worker contract entirely. Reaching it needs its proxy host allowlisted.
+
+Once an endpoint serves jobs, the benchmark is written and ready:
+
+```sh
+NODE_USE_ENV_PROXY=1 RUNPOD_API_KEY=… RUNPOD_ENDPOINT_ID=… GPU_USD_PER_HR=0.69 \
+  node spikes/s2-runpod-worker/bench.mjs
+```
+
+It runs the 3-genre CC BY / BY-SA corpus (R52), prints delayTime / executionTime /
+cost-per-song against the ROADMAP gates, and writes `s2-results.json`.
+`NODE_USE_ENV_PROXY=1` is required — Node's built-in fetch ignores `HTTPS_PROXY` without it.
 
 The key lives ONLY as an environment variable (cloud-environment settings, or Lando's
 own machine) — never in chat, never committed. NOTE: env-var changes reach newly
