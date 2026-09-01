@@ -392,6 +392,17 @@ the cited pages.
     URL-in → separate → timings contract works in the real image, not just as a loose
     script. *(0.75× here vs R52's 0.45× is a different CPU and a 15 s clip — fixed
     overhead amortizes differently. Not comparable, and neither is the GPU gate figure.)*
+  - **⚠ THE VALIDATION IMAGE MUST NEVER BE PUSHED.** Because the sandbox overlay used `ENV`,
+    the built image carries `HTTPS_PROXY=http://127.0.0.1:44539`,
+    `HTTP_PROXY=http://127.0.0.1:44539`, and `PIP_CERT`/`REQUESTS_CA_BUNDLE`/`SSL_CERT_FILE`
+    pointing at `/usr/local/share/ca-certificates/ccr-proxy.crt` (confirmed via
+    `docker inspect`). On RunPod every outbound call — fetching the audio from R2, PUTting
+    stems back — would be aimed at a localhost proxy that does not exist, and TLS would be
+    verified against a sandbox CA. **It is a validation artifact only; it proves the
+    Dockerfile, it is not a shippable image.** To produce a shippable one from this sandbox
+    the overlay must use build-time `ARG` (not persisted into the image config) and delete
+    the CA file in the same `RUN` layer that adds it. The clean route avoids the problem
+    entirely: let RunPod build from the repo (R54), where no proxy exists.
   - **What this sandbox still cannot do is PUSH.** `GITHUB_TOKEN`/`GH_TOKEN` are 14-char
     proxy placeholders (`prox…`), not real credentials — git auth is injected by the proxy
     (`gitConfigInjection: true`), so there is nothing to hand `docker login`. This
