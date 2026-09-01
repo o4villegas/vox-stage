@@ -86,6 +86,13 @@ acting.
   The sandbox Docker daemon starts on demand; `DOCKER_API_KEY` is present but unverified.
   M1's deploy path must be GitHub Actions (+ repo secret), desktop wrangler, or an
   allowlist change — never assume the sandbox can reach Cloudflare.
+  **2026-09-01 later:** Lando Git-connected the `voxstage-spikes` **Pages** project to the
+  repo (console). One auto-build published the repo tree to the mirror and broke `/s1/`;
+  restored via the bridge. **Automatic deployments on that project must stay OFF.** The
+  recommended M1 deploy path is now Cloudflare **Workers Builds** (Cloudflare pulls from
+  GitHub, `npx wrangler deploy`, no token needed — verified in cloudflare-docs
+  `workers/ci-cd/builds/`), as a *separate* Worker project created when M1 code exists;
+  awaiting Lando's confirmation (see `docs/STATUS-2026-09-01.md` §6 item 4).
 - **Product decisions confirmed by Lando (2026-08-28, T/F interview):** reuse prior
   VoxApp/VoxReport tech ("Rangefinder") for profile capture · accounts-first, no
   anonymous mode · 2-stem separation for MVP · live scoring is launch-blocking ·

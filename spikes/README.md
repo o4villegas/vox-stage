@@ -21,7 +21,12 @@ results get recorded as new entries in docs/RESEARCH.md.
 push new files to `gh-pages`, or let `.github/workflows/spike-pages.yml` do it on merges
 to main touching `/spikes`). Mirror at https://voxstage-spikes.pages.dev (Cloudflare
 Pages, deployed via the desktop bridge; redeployed 2026-08-30 from main `c9b09fe` — now
-serves the same v3 harness). Mic prompts normally on both (top-level HTTPS) — unlike the
+serves the same v3 harness). **⚠ 2026-09-01: the `voxstage-spikes` Pages project is now
+Git-connected to `o4villegas/vox-stage` (Lando, console), production branch `main`, blank
+build config. With automatic deployments ON, every merge to `main` republishes the raw
+repo tree to the mirror and breaks `/s1/` (happened once, deployment `9da55c5b` from
+`67a5313`; restored the same day by redeploying `site/`). Automatic deployments must stay
+OFF on that project; it is not the M1 deploy path. Mic prompts normally on both (top-level HTTPS) — unlike the
 claude.ai artifact host, whose iframe blocks mic in all browsers (R40).
 
 Open it on each phone, run both tests, tap **Copy results JSON**, and paste the JSON back
