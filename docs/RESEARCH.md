@@ -499,6 +499,45 @@ the cited pages.
     storage) is egress-denied, which breaks a *re-download* of the demucs weights, so avoid
     busting that layer's cache.
 
+- **R56.** S3's corpus problem and its resolution (2026-09-01). S3 must score pitch
+  extraction **on separated stems**, so it needs a mix to separate *and* frame-level f0
+  truth for the vocal inside it. No corpus supplies both under a commercially permissive
+  licence:
+  - **JamendoLyrics — the S2 benchmark corpus — has NO pitch annotations.** It ships
+    word-level timings, line-level timings, lyrics text and audio; it is an automatic
+    lyrics-alignment benchmark, "limited strictly to temporal alignment of lyrics with
+    audio." So S2's benchmark stems **cannot** be scored for S3's gate. Caught before the
+    endpoint run, not after.
+  - **vocadito — CC BY 4.0**, verified at the primary source (Zenodo API record
+    `5578807`: `"license": "cc-by-4.0"`), not just via mirdata. 40 solo monophonic singing
+    excerpts, **44.1 kHz mono**, 8.7–38.7 s (median 19.5 s, 13.6 min total), with human
+    frame-level f0 + voicing, two independent note annotators, lyrics, and metadata giving
+    `singer_id`, `average_pitch` (**MIDI 47–65**) and `language` (7 languages). Download
+    58,492,257 bytes, **md5 `dea40fd18f14d899643c4ba221b33a46`** (verified).
+  - **Its f0 format is byte-identical to `eval_pyin.py`'s input contract** — the README
+    states "column 1: evenly spaced timestamps in seconds / column 2: f0 values in Hz. A
+    value of 0.0 indicates that no f0 is present", which is exactly `time_seconds,hz` with
+    0 for unvoiced. **No converter needed**; the annotations are copied verbatim.
+  - **Rejected on licence:** MedleyDB melody — CC BY-**NC**-SA 4.0 plus an access request;
+    MUSDB18 — academic use only, BY-NC-SA, access-gated (46 of its tracks come from
+    MedleyDB). **MIR-1K — licence could not be verified from any reachable source**, so it
+    is unusable under rule 2 regardless of how well it fits technically.
+  - **Design consequence — synthesize the mixes.** vocadito's vocal (annotated, CC BY) is
+    laid over an accompaniment bed = the `no_vocals` stem demucs produces from an S2-corpus
+    track (CC BY / CC BY-SA), at controlled SNRs. The whole chain stays commercially
+    permissive, and the ground truth stays human rather than extractor-derived, which avoids
+    scoring pyin against itself. **A clean-vocal control run is part of the method, not an
+    extra:** an error figure from a separated stem is uninterpretable alone — it cannot
+    distinguish damage done by separation from the extractor's own error on that singer.
+    The separated-minus-clean delta is the number that answers S3.
+  - **S3 does not need the GPU endpoint.** Separation output is determined by model and
+    weights, not device, so the validated image running demucs on CPU produces stems S3 can
+    score. S3 therefore runs in parallel with the S2 deployment rather than behind it.
+    *(Engineering judgment: CPU/GPU differ in low-order float noise, immaterial to a pitch
+    contour.)*
+  - `zenodo.org` was egress-blocked; Lando allowlisted it 2026-09-01, which is what made
+    vocadito reachable at all.
+
 ## Absence claims (inherently T2 — cannot prove a negative)
 
 - **R33.** No product found that combines: user-uploaded songs + stem separation + persistent
