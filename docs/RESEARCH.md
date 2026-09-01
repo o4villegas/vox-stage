@@ -582,6 +582,51 @@ the cited pages.
     A qualitative contour check on a real S2-corpus track (no numeric truth exists for it)
     is still worth doing once the endpoint is live.
 
+- **R51.** RunPod Serverless worker contract — measured the hard way (2026-08-31, own
+  experiments; T1 for this account/platform). Four findings, each from primary evidence:
+  - **A handler must be baked into the image as its `CMD`.** RunPod's own
+    `runpod-workers/worker-template` Dockerfile ends `CMD python -u /handler.py` and its
+    README's deploy path is "build and push the Docker image". Overriding
+    `dockerStartCmd` on a generic image (here `pytorch/pytorch:2.5.1-cuda12.4-cudnn9-runtime`)
+    **never produced a worker that claims jobs**: every job sat `IN_QUEUE` indefinitely
+    across three template variants — the full bootstrap, a minimal
+    `pip install runpod` + 6-line inline handler, and that same minimal handler with
+    fitness checks disabled. All three of Lando's working endpoints use purpose-built
+    `runpod/worker-*` images with `dockerStartCmd: null`; ours was the only template on the
+    account overriding it. **Design consequence: M2's GPU worker ships as a built and
+    pushed image, not as a boot-time install.**
+  - **The SDK hard-exits on failed "fitness checks"** (`runpod` 1.12.0,
+    `rp_fitness` / `rp_system_fitness`): memory ≥ 4 GB, disk ≥ 10 % free, network
+    (TCP 8.8.8.8:53), CUDA version ≥ 11.8, CUDA init, and a GPU compute benchmark. Any
+    failure calls `os._exit(1)` — deliberately, so the orchestrator restarts the worker —
+    which from outside looks exactly like a job that is never claimed, with no logs.
+    Observed directly in a local container: a disk check at 7.3 % free produced
+    `Worker is unhealthy, exiting`. Escape hatches: `RUNPOD_SKIP_AUTO_SYSTEM_CHECKS=true`,
+    and per-check thresholds `RUNPOD_MIN_DISK_PERCENT` / `RUNPOD_MIN_MEMORY_GB` /
+    `RUNPOD_MIN_CUDA_VERSION`. **Design consequence: size container disk generously and
+    treat "silent worker" as a fitness failure until proven otherwise.**
+  - **Without `RUNPOD_WEBHOOK_GET_JOB` the SDK runs in local mode and exits immediately**
+    (`worker.py::_is_local`); observed as `test_input.json not found, exiting`. Useful as
+    the local test harness (mount a `test_input.json` and the handler runs one job), and a
+    reminder that a worker which "starts fine" locally proves nothing about serving.
+  - **Worker state and logs are not diagnostic.** `/health` reports container state, not
+    handler state — a worker read `ready/idle` ~29 s after submit while its install could
+    not have finished. No worker logs are retrievable: the REST API has no logs or workers
+    endpoints (full path list checked), GraphQL introspection is disabled and `Endpoint`
+    has no `workers` field, and serverless workers do not appear under `myself { pods }`.
+    **Design consequence: any RunPod worker we ship must self-report diagnostics through
+    its job output, because the platform gives us nothing else.**
+- **R52.** S2 handler validated end-to-end (2026-08-31, local CPU, real song): the spike
+  handler downloaded a 5.67 MB CC BY track, ran `htdemucs --two-stems vocals`, and returned
+  both stems (38.2 MB each) with duration correctly measured at **216.61 s**; demucs 4.1.0
+  on torch 2.5.1+cu124. Separation took **485.4 s on CPU = 0.45× realtime**, which is why
+  the GPU is required and is the baseline the GPU run must beat. The URL-in / presigned-
+  PUT-out contract (R12) is therefore proven; only the RunPod *deployment* remains open.
+  Test corpus (all verified present, all commercially permissive so the benchmark carries
+  no non-commercial restriction): JamendoLyrics (dataset MIT, per-track CC) —
+  Rxbyn "Bad Side" (RNB, CC BY), Durch Dick und Dünn "Freifliegen" (Rock, CC BY-SA),
+  Wilson Way "Te Recuerdo" (Hip-Hop, CC BY-SA).
+
 ## Absence claims (inherently T2 — cannot prove a negative)
 
 - **R33.** No product found that combines: user-uploaded songs + stem separation + persistent
