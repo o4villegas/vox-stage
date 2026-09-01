@@ -93,6 +93,13 @@ acting.
   GitHub, `npx wrangler deploy`, no token needed — verified in cloudflare-docs
   `workers/ci-cd/builds/`), as a *separate* Worker project created when M1 code exists;
   awaiting Lando's confirmation (see `docs/STATUS-2026-09-01.md` §6 item 4).
+  **20:50 UTC: Lando created the `voxstage-staging` Worker and connected it via Workers
+  Builds** (verified: `workers_list` shows it, created 2026-09-01T20:50:03Z). It builds
+  every push to the repo and posts a check named "Workers Builds: voxstage-staging" on PRs;
+  **that check fails on every commit until M1 code exists** (no `package.json` / wrangler
+  config at repo root — nothing to deploy). Expected, harmless, not a PR defect. Once M1
+  starts, the repo layout in `docs/M1-PLAN.md` §2 must put `wrangler.jsonc` + `package.json`
+  where this project's root directory points (default: repo root).
 - **Product decisions confirmed by Lando (2026-08-28, T/F interview):** reuse prior
   VoxApp/VoxReport tech ("Rangefinder") for profile capture · accounts-first, no
   anonymous mode · 2-stem separation for MVP · live scoring is launch-blocking ·
