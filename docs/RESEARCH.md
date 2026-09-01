@@ -722,6 +722,13 @@ the cited pages.
     bridge; the vendor host is egress-blocked here): 13 skills + 5 MCP server definitions,
     **user-scoped in this ephemeral container only** — it does not persist across sessions,
     and its MCP servers need an interactive OAuth this session cannot perform.
+  - **Workers Builds failure cause — MEASURED** (log pasted by Lando, build `0fa40aa8`,
+    2026-09-01T20:57Z, non-production branch): the builder ran `npx wrangler versions upload`
+    (wrangler 4.128.0) and failed with **`✘ [ERROR] Missing entry-point to Worker script or
+    to assets directory`** — i.e. no `wrangler.jsonc`/`main`/`assets` in the repo. Not a
+    config error on Cloudflare's side; it resolves itself the moment M1 adds
+    `wrangler.jsonc` + a Worker entry at the project root. Preview builds use
+    `versions upload`, production (`main`) uses `wrangler deploy`, matching the docs.
 
 ## Absence claims (inherently T2 — cannot prove a negative)
 
