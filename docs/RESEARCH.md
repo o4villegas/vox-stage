@@ -302,7 +302,9 @@ the cited pages.
   (rest.runpod.io, api.runpod.ai, api.runpod.io → connection rejected, 2026-08-29).
   `RUNPOD_API_KEY` is present in fresh containers, but S2 cannot execute until the
   environment's network policy allows the RunPod domains (Lando's environment settings).
-  Re-probed ×4 across 2026-08-30: still blocked.
+  Re-probed ×4 across 2026-08-30: still blocked. *(**SUPERSEDED 2026-09-01** — the RunPod
+  API hosts are now reachable and the key authenticates; see R53. R49 describes the
+  2026-08-29/30 state only.)*
 - **R50.** S0 Rangefinder audit **COMPLETE** (2026-08-30, from-desktop bridge restored;
   completes R34). Read in full: `verify/mpm-fast.mjs` (124 ln), `verify/harness.mjs`
   (344 ln), `verify/splice-mpm.mjs` (124 ln), `index.html` (751 ln), `CLAUDE.md` deploy
@@ -337,6 +339,38 @@ the cited pages.
     splice justified only at ≥5× median speedup; splice tool `node --check`s a temp file
     and renames atomically. House rule: harness must pass before deploying any change
     touching detection logic.
+- **R53.** S2 environment re-audit (2026-09-01, fresh container). *Numbering skips R51/R52,
+  which are pending in [PR #8](https://github.com/o4villegas/vox-stage/pull/8).*
+  - **RunPod egress is OPEN — R49 is resolved.** All three hosts return application-level
+    responses, not proxy denials: `api.runpod.ai/v2/health` → 404,
+    `rest.runpod.io/v1/endpoints` → 401 unauthenticated, `api.runpod.io/graphql` → 400.
+    With `RUNPOD_API_KEY` (present, 50 chars) `GET /v1/endpoints` returns 200 + account
+    data, so **the key is valid and the API is usable from this environment**.
+  - **Leftover spike endpoint still exists**, idle and not billing: `voxstage-s2-spike`
+    (`pw1wbkuc138zz4`, created 2026-08-30) — `workersMax: 0`, `workersMin: 0`,
+    idleTimeout 120 s, GPUs A5000/L4/A4500, template `e26f2wqimu` (the R51 dead-end
+    `dockerStartCmd` bootstrap over `pytorch/pytorch:2.5.1-cuda12.4-cudnn9-runtime`).
+    With `workersMax: 0` it cannot claim jobs. **Total S2 spend to date: $0.355**
+    ($0.3184 on 2026-08-30 + $0.0362 on 2026-08-31, `GET /billing/endpoints`); nothing
+    billed 2026-09-01, and `GET /billing/pods` is empty. Well inside the ~$50/mo ceiling.
+  - **The REST API cannot build an image.** Its OpenAPI spec (`GET /v1/openapi.json`)
+    exposes 23 paths — endpoints, templates, pods, network volumes, billing, and
+    `containerregistryauth` — with **no build or git-source route**. A template can only
+    point at an image some registry already serves. (`containerregistryauth` does allow a
+    *private* registry pull, so the pushed image need not be public.)
+  - **This sandbox still cannot produce that image.** `docker` CLI 29.3.1 is installed but
+    **there is no daemon** (`/var/run/docker.sock` missing) — build and pull both fail. So
+    R51's conclusion holds for a different reason than assumed: registry *reachability* is
+    fine (hub.docker.com 200, registry-1.docker.io and ghcr.io both answer), but there is
+    no engine to build with.
+  - **The GPU-Pod fallback is still blocked from here.** `proxy.runpod.net` and
+    `ssh.runpod.io` are both unreachable (connect fails, no HTTP status), so a Pod could be
+    *created* via `POST /pods` but not *reached* to run anything.
+  - **Lando's machine is the ready path** (from-desktop bridge, verified 2026-09-01):
+    Docker **28.4.0 with a running daemon**, already authenticated to Docker Hub
+    (`index.docker.io` in `~/.docker/config.json`), **834 GB free disk** — enough for the
+    R51 disk-headroom trap. No local GPU (build/push only; the GPU stays RunPod's).
+    `vox-stage` is **not yet cloned** there.
 
 ## Absence claims (inherently T2 — cannot prove a negative)
 

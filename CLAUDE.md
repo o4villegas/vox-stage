@@ -43,9 +43,15 @@ acting.
 - **Phase 0 status:** see the table in `spikes/README.md`. S0 CLOSED (audit complete,
   R50) · S1 CLOSED (pass on device; mic processing all-OFF confirmed, R39–R43) · S4
   CLOSED (pass with documented deviation, RTT ≈ 70 ms, R45/R47) · S3 client half done
-  (R37). **Sole remaining blocker: S2** — the cloud environment's egress policy denies
-  all RunPod API hosts (R49); the key itself is present. Device pages current on both
-  hosts (GitHub Pages primary, Cloudflare mirror redeployed 2026-08-30).
+  (R37). **Sole remaining blocker: S2**, and its blocker has MOVED — RunPod egress is
+  now open and the key authenticates (R53 supersedes R49). What blocks S2 is the
+  **deployment shape** (R51, in PR #8): a RunPod serverless worker must have the handler
+  baked into the image as `CMD`, so S2 needs a built-and-pushed image. This sandbox has
+  the `docker` CLI but **no daemon**, and `proxy.runpod.net`/`ssh.runpod.io` are
+  unreachable, so neither the build nor the GPU-Pod fallback can run here; **Lando's
+  machine can** (Docker 28.4.0 daemon up, already logged into Docker Hub, 834 GB free —
+  R53). Device pages current on both hosts (GitHub Pages primary, Cloudflare mirror
+  redeployed 2026-08-30). S2 spend to date: **$0.355**, nothing currently billing (R53).
 - **Product decisions confirmed by Lando (2026-08-28, T/F interview):** reuse prior
   VoxApp/VoxReport tech ("Rangefinder") for profile capture · accounts-first, no
   anonymous mode · 2-stem separation for MVP · live scoring is launch-blocking ·
@@ -61,13 +67,23 @@ acting.
   algorithm = minimal contiguous window ≥60% voiced time). Its production guardrail:
   echoCancellation, noiseSuppression, AND autoGainControl all OFF — "turning any of them
   on distorts the pitch reading."
-- **M1 plan: merged as plan of record** (PR #3, 2026-08-30) — `docs/M1-PLAN.md`. Its §6
-  decisions (framework, email provider, API token, naming, Biome) and the M1 go itself
-  are still open; merging the plan did NOT authorize the build (rule 1 stands).
-- **Open items awaiting Lando:** allow the RunPod API domains (`api.runpod.ai`,
-  `rest.runpod.io`, `api.runpod.io`) in the cloud environment's network policy, then
-  bounce the session — sole S2 blocker (R49) · the six §6 calls in `docs/M1-PLAN.md` ·
-  M1 approval after the Phase 0 exit report.
+- **M1 plan: merged as plan of record** (PR #3, 2026-08-30) — `docs/M1-PLAN.md`. Four of
+  its six §6 decisions (React+Vite, Resend with OAuth deferred, naming, Biome) were made
+  in-session 2026-08-30 and are **recorded but NOT yet merged** — they live in open draft
+  PR #7. Merging the plan did NOT authorize the build (rule 1 stands).
+- **Open draft PRs awaiting Lando's merge** (nothing in either is blocked on more work):
+  - [#7](https://github.com/o4villegas/vox-stage/pull/7) — the four §6 decisions above.
+  - [#8](https://github.com/o4villegas/vox-stage/pull/8) — S2 findings R51 (RunPod
+    serverless worker contract: handler must be baked in as `CMD`; no worker logs exist,
+    so **M2's worker must self-report through its job output**) and R52 (handler
+    validated end-to-end on a real song; CPU separation 0.45× realtime, which is why GPU
+    is required). Also marks the `dockerStartCmd` bootstrap a dead end so no future
+    session retries it.
+- **Open items awaiting Lando:** merge PRs #7 and #8 · get a Demucs image built and
+  pushed from his machine so S2 can take its gate measurements (R53 — the cloud session
+  cannot build or reach a Pod) · the two remaining §6 calls (OTP sending domain,
+  `CLOUDFLARE_API_TOKEN` repo secret) · M1 approval after the Phase 0 exit report.
+  **No longer needed:** the RunPod egress allowlist — that resolved itself (R53).
 - **Sessions:** do NOT spawn sibling sessions via the API — the environment's setup
   script fails them on arrival ("Setup script failed", non-recoverable, verified twice
   2026-08-29). This session owns Phase 0 follow-ups, PR watching, and the exit report.
