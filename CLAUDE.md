@@ -80,11 +80,12 @@ acting.
 - **Open draft PRs awaiting Lando's merge** (nothing in either is blocked on more work):
   - [#7](https://github.com/o4villegas/vox-stage/pull/7) — the four §6 decisions above.
   - [#8](https://github.com/o4villegas/vox-stage/pull/8) — S2 findings R51 (RunPod
-    serverless worker contract: handler must be baked in as `CMD`; no worker logs exist,
-    so **M2's worker must self-report through its job output**) and R52 (handler
+    serverless worker contract: handler must be baked in as `CMD`) and R52 (handler
     validated end-to-end on a real song; CPU separation 0.45× realtime, which is why GPU
     is required). Also marks the `dockerStartCmd` bootstrap a dead end so no future
-    session retries it.
+    session retries it. **Caveat: R51's "no worker logs exist" is wrong** — it holds only
+    for API v1. API v2 streams them (R55), so M2 is NOT forced to make the worker
+    self-report through its job output.
 - **Open items awaiting Lando:** merge PRs #7, #8, #9 · **pick an S2 deployment route** —
   authorize RunPod's GitHub integration in the console (preferred, R54), or supply a Docker
   Hub token / run the push himself as `gvo555`, or allowlist `proxy.runpod.net` +

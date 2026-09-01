@@ -449,12 +449,55 @@ the cited pages.
     are designed exclusively for Runpod's infrastructure and cannot be pulled or executed
     on other platforms." Fine for a spike; it is soft lock-in for production, so M2 should
     decide deliberately between this and a normal registry push.
-  - **[judgment] Open risk — build context.** The docs expose a *Dockerfile Path* setting
-    but never state what directory becomes the build context. Our Dockerfile sits at
-    `spikes/s2-runpod-worker/Dockerfile` and does `COPY handler.py /handler.py`, which
-    resolves only if the context is that directory. If RunPod uses the repo root, the COPY
-    fails and the fix is one line (`COPY spikes/s2-runpod-worker/handler.py`). Unverified —
-    the first build attempt will settle it.
+  - **Open risk — build context. Investigated and NEUTRALIZED; see R55.** The docs expose a
+    *Dockerfile Path* setting but never state what directory becomes the build context.
+- **R55.** Deep dive on the R54 build-context gap (2026-09-01). Three results, all measured.
+  - **GitHub-sourced deploys are console-only — now definitive, not inferred.** Checked
+    every API surface: v1 REST (`rest.runpod.io/v1/openapi.json`, 23 paths — no git route);
+    **v2 REST** (`api.runpod.io`, spec at `api-reference-v2/openapi.json` in the docs repo,
+    34 paths) whose `CreateEndpointRequest` flattens through its `allOf` chain to exactly 17
+    properties — `args, cpu, dataCenterIds, disk, env, flashboot, gpu, image, name,
+    networkVolumes, ports, registry, scaling, templateId, timeout, type, workers` — i.e.
+    **only `image` or `templateId`, no repo/branch/build field**; and GraphQL, where
+    introspection is disabled (`INTROSPECTION_DISABLED` from Apollo). So the console
+    click-through cannot be automated away, and RunPod's build context cannot be probed
+    through an API.
+  - **⚠ R51 finding 4 is WRONG on API v2 — worker logs DO exist.** v2 exposes
+    `GET /v2/serverless/{id}/workers` and **`GET /v2/serverless/{id}/workers/{workerId}/logs`**,
+    which "Streams a serverless worker's logs as Server-Sent Events" with payload
+    `{"source": "container", "line": "...", "ts": "..."}` and `Last-Event-ID` resume, plus
+    `GET /v2/serverless/{id}/releases` for build/release history. **v2 verified live with
+    the account key** (listed 3 endpoints). R51 concluded "no worker logs exist on any
+    RunPod API surface" from the v1 surface alone and drew the M2 design consequence that
+    *"any worker we ship must self-report through its job output."* **That constraint is
+    not required** — M2 can read worker logs directly. Self-reporting in the job output is
+    still worth keeping as a convenience, but it is no longer forced.
+  - **The context risk was real, and is now designed out.** Measured locally with real
+    docker builds: the current `COPY handler.py /handler.py` **fails under a repo-root
+    context** (exit 1, `failed to compute cache key … not found`), which is the context
+    RunPod's wording ("Dockerfile Path … if not in root") implies. A context-agnostic hunk
+    builds clean under **both** contexts and lands the correct file:
+    ```dockerfile
+    COPY . /ctx
+    RUN set -eux; \
+        src="$(find /ctx -name handler.py -type f | head -n1)"; \
+        test -n "$src"; \
+        cp "$src" /handler.py; \
+        rm -rf /ctx
+    ```
+    Verified against the real 11 GB image at repo-root context: build exit 0, the genuine
+    `handler.py` at `/handler.py` (a decoy file elsewhere in the tree was not picked), `/ctx`
+    removed, and the image still ran a job to completion (both stems, full timings). Cheap:
+    the repo is 432 KB plus an 832 KB `.git`. Unambiguous: `handler.py` is unique in the tree.
+  - **Route 2 is proven in production, not theoretical:** the account's two other endpoints
+    already run `gvo555/smokescan-analysis:v12` and `gvo555/floorplan-v1:1.0.0`, so RunPod
+    pulls from that Docker Hub namespace today.
+  - **Sandbox gotchas for future sessions** (all cost time here): the agent proxy's port
+    **changes between turns** — never bake `$HTTPS_PROXY` into an image or a script; setting
+    `HTTP_PROXY` breaks `apt` with `405 Method Not Allowed` (it sends plain-HTTP, not
+    CONNECT — pass only `HTTPS_PROXY`); and `cas-server.xethub.hf.co` (Hugging Face Xet
+    storage) is egress-denied, which breaks a *re-download* of the demucs weights, so avoid
+    busting that layer's cache.
 
 ## Absence claims (inherently T2 — cannot prove a negative)
 
