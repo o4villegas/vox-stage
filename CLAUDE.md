@@ -76,6 +76,16 @@ acting.
   $0.17/hr for R58 (billing lagged at $0 when queried). **Nothing is running** — the pod was
   terminated and verified gone; the leftover `voxstage-s2-spike` endpoint has `workersMax: 0`
   and cannot bill.
+- **Environment audit 2026-09-01 evening (R59, `docs/STATUS-2026-09-01.md`):**
+  `api.cloudflare.com` and `api.resend.com` are **egress-denied** in this sandbox, so
+  `wrangler` cannot deploy from here and the `CLOUDFLARE_API_TOKEN` (a `cfat_` Account
+  API Token) and `RESEND_API_KEY` are present but **unverified**. Working routes: the
+  Cloudflare MCP connector (inventory + D1/KV/R2 create, no deploy), RunPod REST (full),
+  and Lando's machine via the from-desktop bridge (**wrangler OAuth-logged-in with write
+  scopes; Docker Desktop NOT running**). `S3_API_KEY` is the R2 endpoint URL, not a key.
+  The sandbox Docker daemon starts on demand; `DOCKER_API_KEY` is present but unverified.
+  M1's deploy path must be GitHub Actions (+ repo secret), desktop wrangler, or an
+  allowlist change — never assume the sandbox can reach Cloudflare.
 - **Product decisions confirmed by Lando (2026-08-28, T/F interview):** reuse prior
   VoxApp/VoxReport tech ("Rangefinder") for profile capture · accounts-first, no
   anonymous mode · 2-stem separation for MVP · live scoring is launch-blocking ·
@@ -102,15 +112,15 @@ acting.
   contract and the S3 harness + R53–R57 are now on `main`. **One caveat carried forward: R51's "no worker logs exist"
   is wrong** — it holds only for API v1; API v2 streams them (R55), so M2 is NOT forced to
   make the worker self-report through its job output.
-- **Open items awaiting Lando:** **the S2 endpoint deploy** — RunPod's GitHub integration
-  is **console-only** (R55: verified across v1 REST, v2 REST and GraphQL), so no agent can
-  do it; the alternatives are a Docker Hub push as `gvo555` (needs the from-desktop bridge,
-  which was returning 530 on 2026-09-01) or allowlisting `proxy.runpod.net` +
-  `ssh.runpod.io` for the Pod route (R53) · **ratify S3's gate thresholds** (R57 proposes
-  octave-err ≤ 5 %, median ≤ 25 ¢, voicing ≥ 85 %; ROADMAP left them undefined) · the two
-  remaining §6 calls (OTP sending domain, `CLOUDFLARE_API_TOKEN` repo secret) · M1 approval
-  after the Phase 0 exit report.
-  **No longer needed:** allowlisting the RunPod *API* domains, or `zenodo.org` — both done.
+- **Open items awaiting Lando (see `docs/STATUS-2026-09-01.md` §6):** **the S2 endpoint
+  deploy** — three paths: (A) sandbox rebuild + Docker Hub push with `DOCKER_API_KEY` +
+  `PATCH` the existing endpoint via REST v1 (agent-executable if the key is valid and
+  Lando says go); (B) Lando starts Docker Desktop and the bridge builds/pushes; (C) console
+  Import Git Repository (R55, ~5 min) · **ratify S3's gate thresholds** (R57 proposes
+  octave-err ≤ 5 %, median ≤ 25 ¢, voicing ≥ 85 %) · **M1 deploy path** (GitHub Actions +
+  `CLOUDFLARE_API_TOKEN` repo secret recommended) · OTP sending domain · M1 approval after
+  the Phase 0 exit report. **No longer needed:** allowlisting the RunPod *API* domains, or
+  `zenodo.org` — both done.
 - **Sessions:** do NOT spawn sibling sessions via the API — the environment's setup
   script fails them on arrival ("Setup script failed", non-recoverable, verified twice
   2026-08-29). This session owns Phase 0 follow-ups, PR watching, and the exit report.

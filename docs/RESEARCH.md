@@ -670,6 +670,41 @@ the cited pages.
     matching R9's secondary sourcing exactly (Pod tiers are cheaper: A4000 $0.17 community /
     $0.25 secure).
 
+- **R59.** Environment + account re-audit (2026-09-01, evening, fresh container; full
+  write-up in `docs/STATUS-2026-09-01.md`).
+  - **Egress: `api.cloudflare.com` and `api.resend.com` are BOTH policy-denied** (proxy
+    status: `connect_rejected — gateway answered 403 to CONNECT`, 7/7 attempts each), as
+    are `dash.cloudflare.com`, `*.workers.dev`, `*.pages.dev` and `o4villegas.github.io`.
+    So `wrangler` cannot deploy from the sandbox and neither the Cloudflare token nor the
+    Resend key can be verified here. **Reachable:** `<acct>.r2.cloudflarestorage.com`
+    (400 unauth), all RunPod API hosts (authenticated), npm, Docker Hub, `registry-1`,
+    `raw.githubusercontent.com`.
+  - **The Cloudflare MCP connector works independently of the token** (own OAuth): listed
+    21 Workers, 20 R2 buckets, 22 D1 DBs; no `voxstage*` resource exists. It has D1/KV/R2
+    create tools but **no Workers deploy tool**.
+  - **Credentials present, shapes only:** `CLOUDFLARE_API_TOKEN` = `cfat_`+48, the
+    documented *Account API Token* scannable format (cloudflare-docs
+    `fundamentals/api/get-started/token-formats.mdx`: `cfat_[40 characters][checksum]`) —
+    scopes **unverified**; `RESEND_API_KEY` = `re_`+33, unverified; `DOCKER_API_KEY`
+    present, unverified (login test blocked by the permission classifier);
+    `AWS_ACCESS_KEY_ID`/`AWS_SECRET_ACCESS_KEY` present (32/64 chars), unverified (sign
+    test blocked); `CLOUDFLARE_ACCESS_KEY` 32 hex ≠ `AWS_ACCESS_KEY_ID`, purpose unclear;
+    **`S3_API_KEY` is not a key — it is the R2 S3 endpoint URL.** `RUNPOD_API_KEY` verified.
+  - **RunPod:** balance $41.06; `currentSpendPerHr` $0.015 — *[inference]* equals the two
+    network volumes (150 GB × $0.07/GB-mo ≈ $0.0146/hr), not VoxStage; 0 pods;
+    `voxstage-s2-spike` unchanged (`workersMax: 0`). v1 OpenAPI exposes
+    `PATCH /endpoints/{id}` and `PATCH /templates/{id}`, so an agent can retarget the
+    existing endpoint at a registry image without the console. ⚠ Two unrelated endpoints
+    expose an HF token in plain `env` via the API.
+  - **from-desktop bridge is UP** (530 yesterday). On Lando's machine: **Docker is NOT
+    available right now** — `/usr/bin/docker` → `/mnt/wsl/docker-desktop/…` which does not
+    exist, i.e. Docker Desktop is not running (R53's "daemon up" is stale); **wrangler
+    4.86.0 is OAuth-logged-in** with `workers`, `workers_scripts`, `d1`, `queues`, `pages`
+    write scopes — a working deploy path; the only `vox-stage` clone there is stale at
+    PR #6. The bridge's `env` parameter does **not** expand `$VAR` (sent literally).
+  - **Sandbox Docker daemon starts fine** (29.3.1, overlayfs) — the R53 build can be
+    repeated here; a push needs a valid `DOCKER_API_KEY`.
+
 ## Absence claims (inherently T2 — cannot prove a negative)
 
 - **R33.** No product found that combines: user-uploaded songs + stem separation + persistent
