@@ -302,7 +302,9 @@ the cited pages.
   (rest.runpod.io, api.runpod.ai, api.runpod.io → connection rejected, 2026-08-29).
   `RUNPOD_API_KEY` is present in fresh containers, but S2 cannot execute until the
   environment's network policy allows the RunPod domains (Lando's environment settings).
-  Re-probed ×4 across 2026-08-30: still blocked.
+  Re-probed ×4 across 2026-08-30: still blocked. *(**SUPERSEDED 2026-09-01** — the RunPod
+  API hosts are now reachable and the key authenticates; see R53. R49 describes the
+  2026-08-29/30 state only.)*
 - **R50.** S0 Rangefinder audit **COMPLETE** (2026-08-30, from-desktop bridge restored;
   completes R34). Read in full: `verify/mpm-fast.mjs` (124 ln), `verify/harness.mjs`
   (344 ln), `verify/splice-mpm.mjs` (124 ln), `index.html` (751 ln), `CLAUDE.md` deploy
@@ -337,6 +339,248 @@ the cited pages.
     splice justified only at ≥5× median speedup; splice tool `node --check`s a temp file
     and renames atomically. House rule: harness must pass before deploying any change
     touching detection logic.
+- **R53.** S2 environment re-audit (2026-09-01, fresh container). *Numbering skips R51/R52,
+  which are pending in [PR #8](https://github.com/o4villegas/vox-stage/pull/8).*
+  - **RunPod egress is OPEN — R49 is resolved.** All three hosts return application-level
+    responses, not proxy denials: `api.runpod.ai/v2/health` → 404,
+    `rest.runpod.io/v1/endpoints` → 401 unauthenticated, `api.runpod.io/graphql` → 400.
+    With `RUNPOD_API_KEY` (present, 50 chars) `GET /v1/endpoints` returns 200 + account
+    data, so **the key is valid and the API is usable from this environment**.
+  - **Leftover spike endpoint still exists**, idle and not billing: `voxstage-s2-spike`
+    (`pw1wbkuc138zz4`, created 2026-08-30) — `workersMax: 0`, `workersMin: 0`,
+    idleTimeout 120 s, GPUs A5000/L4/A4500, template `e26f2wqimu` (the R51 dead-end
+    `dockerStartCmd` bootstrap over `pytorch/pytorch:2.5.1-cuda12.4-cudnn9-runtime`).
+    With `workersMax: 0` it cannot claim jobs. **Total S2 spend to date: $0.355**
+    ($0.3184 on 2026-08-30 + $0.0362 on 2026-08-31, `GET /billing/endpoints`); nothing
+    billed 2026-09-01, and `GET /billing/pods` is empty. Well inside the ~$50/mo ceiling.
+  - **The REST API cannot build an image.** Its OpenAPI spec (`GET /v1/openapi.json`)
+    exposes 23 paths — endpoints, templates, pods, network volumes, billing, and
+    `containerregistryauth` — with **no build or git-source route**. A template can only
+    point at an image some registry already serves. (`containerregistryauth` does allow a
+    *private* registry pull, so the pushed image need not be public.) RunPod *can* build
+    from a repo, but only through the console — see R54.
+  - **THIS SANDBOX CAN BUILD THE IMAGE — and did.** An earlier draft of this entry claimed
+    it could not, on the strength of `docker info` failing. That was wrong: `dockerd`,
+    `containerd` and `runc` are all installed and the daemon simply was not started.
+    Started it (`dockerd --host=unix:///var/run/docker.sock`, up in 2 s, Docker 29.3.1,
+    overlayfs, buildkit) and registry pulls work.
+  - **First build failed for a sandbox reason, not a Dockerfile defect.** `pip install`
+    died with `SSLError: certificate verify failed: self-signed certificate in certificate
+    chain` — this environment's TLS-intercepting egress proxy, whose CA the build container
+    does not trust. `runpod` failed identically to `demucs`, which is what rules out a
+    package-specific cause; the surface error `No matching distribution found for demucs`
+    is misleading. Fix is documented in `/root/.ccr/README.md`: build with `--network
+    host`, copy `/root/.ccr/ca-bundle.crt` into the context, set `PIP_CERT` /
+    `REQUESTS_CA_BUNDLE` / `SSL_CERT_FILE` and the proxy vars. **Only needed inside this
+    sandbox — the committed Dockerfile must NOT carry it.**
+  - **PR #8's Dockerfile is sound, built with only that overlay added.** Result:
+    `DOCKER_BUILD_EXIT=0`, image **11 GB**. Layer timings — apt/ffmpeg 48.7 s ·
+    `pip install demucs runpod requests` 29.5 s · weight preload (htdemucs +
+    hdemucs_mmi) 326.4 s · export 27.9 s; **≈10 min including the 146 s base pull**,
+    comfortably inside RunPod's 30-minute docker-build cap (R54).
+  - **Resolved versions match R52's measured baseline exactly:** demucs **4.1.0**, torch
+    **2.5.1+cu124**, torchaudio 2.5.1+cu124, runpod SDK **1.12.0**, numpy 2.1.2, requests
+    2.34.2. The deps are unpinned, so this is today's resolution, not a guarantee —
+    pinning `demucs==4.1.0` and `runpod==1.12.0` would make the image reproducible against
+    R52. (demucs 4.1.0 is the current PyPI release, published 2026-07-11, `requires_python
+    >=3.10`; the base image ships Python 3.11.10.)
+  - **The handler was validated INSIDE the built image**, via the RunPod SDK's local mode
+    (R51 finding 3): served a 15 s MP3 over `--network host`, ran the image with no
+    `RUNPOD_WEBHOOK_GET_JOB`, and it consumed `test_input.json` and returned
+    `separate_s 19.96 · audio_duration_s 15.05 · realtime_factor 0.75 (CPU, no GPU)` with
+    both stems produced (2,654,252 bytes each) and `cuda_available: false`. So the whole
+    URL-in → separate → timings contract works in the real image, not just as a loose
+    script. *(0.75× here vs R52's 0.45× is a different CPU and a 15 s clip — fixed
+    overhead amortizes differently. Not comparable, and neither is the GPU gate figure.)*
+  - **⚠ THE VALIDATION IMAGE MUST NEVER BE PUSHED.** Because the sandbox overlay used `ENV`,
+    the built image carries `HTTPS_PROXY=http://127.0.0.1:44539`,
+    `HTTP_PROXY=http://127.0.0.1:44539`, and `PIP_CERT`/`REQUESTS_CA_BUNDLE`/`SSL_CERT_FILE`
+    pointing at `/usr/local/share/ca-certificates/ccr-proxy.crt` (confirmed via
+    `docker inspect`). On RunPod every outbound call — fetching the audio from R2, PUTting
+    stems back — would be aimed at a localhost proxy that does not exist, and TLS would be
+    verified against a sandbox CA. **It is a validation artifact only; it proves the
+    Dockerfile, it is not a shippable image.** To produce a shippable one from this sandbox
+    the overlay must use build-time `ARG` (not persisted into the image config) and delete
+    the CA file in the same `RUN` layer that adds it. The clean route avoids the problem
+    entirely: let RunPod build from the repo (R54), where no proxy exists.
+  - **What this sandbox still cannot do is PUSH.** `GITHUB_TOKEN`/`GH_TOKEN` are 14-char
+    proxy placeholders (`prox…`), not real credentials — git auth is injected by the proxy
+    (`gitConfigInjection: true`), so there is nothing to hand `docker login`. This
+    corroborates R51's ghcr.io finding. Registry *reachability* is fine
+    (hub.docker.com 200, registry-1.docker.io and ghcr.io both answer).
+  - **The GPU-Pod fallback is blocked by egress POLICY, not unreachability.** Both hosts
+    resolve in DNS; the proxy's own status endpoint records
+    `connect_rejected — gateway answered 403 to CONNECT (policy denial)` for
+    `proxy.runpod.net:443` and `ssh.runpod.io:443`. An earlier draft called them
+    "unreachable" after probing only the apex domain, which proves nothing about
+    `<podid>-<port>.proxy.runpod.net`. **So an allowlist ask is still live** — the three
+    RunPod *API* domains were allowlisted, these two were not. (`docs.runpod.io` and
+    `www.runpod.io` are blocked too; use the `runpod/docs` GitHub repo instead, the same
+    workaround CLAUDE.md prescribes for Cloudflare.)
+  - **Lando's machine is a working push path** (from-desktop bridge, verified 2026-09-01):
+    Docker **28.4.0, daemon up**, Docker Hub credential **resolves** — username `gvo555`,
+    served by the Docker Desktop credential helper (`credsStore: desktop.exe`, a WSL
+    setup; the `auths` entry itself is empty, so an earlier "already authenticated
+    per config.json" reading was right by luck, not by evidence). Docker's **actual**
+    daemon disk has **348.9 GB free** (1006.9 GB total, 606.8 GB used) — an earlier draft
+    quoted 834 GB, which is the WSL *user* distro's disk, not the one the daemon writes
+    to. No local GPU. `vox-stage` is **not yet cloned** there.
+- **R54.** RunPod builds images from GitHub — verified against the docs source repo
+  (`github.com/runpod/docs` @ `d5b565d`, `serverless/workers/github-integration.mdx`,
+  read 2026-09-01), because `docs.runpod.io` and `www.runpod.io` are both egress-blocked.
+  "Runpod's GitHub integration simplifies your workflow by pulling your code and Dockerfile
+  from GitHub, building the container image, storing it in Runpod's secure container
+  registry, and deploying it to your endpoint." **This removes the registry-credential
+  blocker entirely.**
+  - **Console-only**, consistent with R53's finding that the REST API has no build route.
+    One-time authorization: console Settings → Connections → **GitHub** → Connect. Then
+    Serverless → New Endpoint → **Import Git Repository** → pick repo, **Branch**, and
+    **Dockerfile Path**.
+  - **Updates require creating a GitHub *release***, not merely a push: "When you make
+    changes to your GitHub repository, they won't automatically be pushed to your endpoint.
+    To trigger an update … create a new release." (Secondary summaries claiming every push
+    redeploys are wrong — this is from the primary source.) Rollback to any previous build
+    is supported from the console.
+  - **Limits, all satisfied by our worker:** `docker build` ≤ **30 min** (ours ≈10 min,
+    R53) · total build window ≤ 160 min · image ≤ **80 GB** (ours 11 GB) · **no privately
+    hosted base images** (ours is public `pytorch/pytorch`) · **no GPU during build**
+    (ours preloads weights on CPU) · one GitHub account per RunPod account.
+  - **Caveat worth carrying into M2:** "Images built through Runpod's image builder service
+    are designed exclusively for Runpod's infrastructure and cannot be pulled or executed
+    on other platforms." Fine for a spike; it is soft lock-in for production, so M2 should
+    decide deliberately between this and a normal registry push.
+  - **Open risk — build context. Investigated and NEUTRALIZED; see R55.** The docs expose a
+    *Dockerfile Path* setting but never state what directory becomes the build context.
+- **R55.** Deep dive on the R54 build-context gap (2026-09-01). Three results, all measured.
+  - **GitHub-sourced deploys are console-only — now definitive, not inferred.** Checked
+    every API surface: v1 REST (`rest.runpod.io/v1/openapi.json`, 23 paths — no git route);
+    **v2 REST** (`api.runpod.io`, spec at `api-reference-v2/openapi.json` in the docs repo,
+    34 paths) whose `CreateEndpointRequest` flattens through its `allOf` chain to exactly 17
+    properties — `args, cpu, dataCenterIds, disk, env, flashboot, gpu, image, name,
+    networkVolumes, ports, registry, scaling, templateId, timeout, type, workers` — i.e.
+    **only `image` or `templateId`, no repo/branch/build field**; and GraphQL, where
+    introspection is disabled (`INTROSPECTION_DISABLED` from Apollo). So the console
+    click-through cannot be automated away, and RunPod's build context cannot be probed
+    through an API.
+  - **⚠ R51 finding 4 is WRONG on API v2 — worker logs DO exist.** v2 exposes
+    `GET /v2/serverless/{id}/workers` and **`GET /v2/serverless/{id}/workers/{workerId}/logs`**,
+    which "Streams a serverless worker's logs as Server-Sent Events" with payload
+    `{"source": "container", "line": "...", "ts": "..."}` and `Last-Event-ID` resume, plus
+    `GET /v2/serverless/{id}/releases` for build/release history. **v2 verified live with
+    the account key** (listed 3 endpoints). R51 concluded "no worker logs exist on any
+    RunPod API surface" from the v1 surface alone and drew the M2 design consequence that
+    *"any worker we ship must self-report through its job output."* **That constraint is
+    not required** — M2 can read worker logs directly. Self-reporting in the job output is
+    still worth keeping as a convenience, but it is no longer forced.
+  - **The context risk was real, and is now designed out.** Measured locally with real
+    docker builds: the current `COPY handler.py /handler.py` **fails under a repo-root
+    context** (exit 1, `failed to compute cache key … not found`), which is the context
+    RunPod's wording ("Dockerfile Path … if not in root") implies. A context-agnostic hunk
+    builds clean under **both** contexts and lands the correct file:
+    ```dockerfile
+    COPY . /ctx
+    RUN set -eux; \
+        src="$(find /ctx -name handler.py -type f | head -n1)"; \
+        test -n "$src"; \
+        cp "$src" /handler.py; \
+        rm -rf /ctx
+    ```
+    Verified against the real 11 GB image at repo-root context: build exit 0, the genuine
+    `handler.py` at `/handler.py` (a decoy file elsewhere in the tree was not picked), `/ctx`
+    removed, and the image still ran a job to completion (both stems, full timings). Cheap:
+    the repo is 432 KB plus an 832 KB `.git`. Unambiguous: `handler.py` is unique in the tree.
+  - **Route 2 is proven in production, not theoretical:** the account's two other endpoints
+    already run `gvo555/smokescan-analysis:v12` and `gvo555/floorplan-v1:1.0.0`, so RunPod
+    pulls from that Docker Hub namespace today.
+  - **Sandbox gotchas for future sessions** (all cost time here): the agent proxy's port
+    **changes between turns** — never bake `$HTTPS_PROXY` into an image or a script; setting
+    `HTTP_PROXY` breaks `apt` with `405 Method Not Allowed` (it sends plain-HTTP, not
+    CONNECT — pass only `HTTPS_PROXY`); and `cas-server.xethub.hf.co` (Hugging Face Xet
+    storage) is egress-denied, which breaks a *re-download* of the demucs weights, so avoid
+    busting that layer's cache.
+
+- **R56.** S3's corpus problem and its resolution (2026-09-01). S3 must score pitch
+  extraction **on separated stems**, so it needs a mix to separate *and* frame-level f0
+  truth for the vocal inside it. No corpus supplies both under a commercially permissive
+  licence:
+  - **JamendoLyrics — the S2 benchmark corpus — has NO pitch annotations.** It ships
+    word-level timings, line-level timings, lyrics text and audio; it is an automatic
+    lyrics-alignment benchmark, "limited strictly to temporal alignment of lyrics with
+    audio." So S2's benchmark stems **cannot** be scored for S3's gate. Caught before the
+    endpoint run, not after.
+  - **vocadito — CC BY 4.0**, verified at the primary source (Zenodo API record
+    `5578807`: `"license": "cc-by-4.0"`), not just via mirdata. 40 solo monophonic singing
+    excerpts, **44.1 kHz mono**, 8.7–38.7 s (median 19.5 s, 13.6 min total), with human
+    frame-level f0 + voicing, two independent note annotators, lyrics, and metadata giving
+    `singer_id`, `average_pitch` (**MIDI 47–65**) and `language` (7 languages). Download
+    58,492,257 bytes, **md5 `dea40fd18f14d899643c4ba221b33a46`** (verified).
+  - **Its f0 format is byte-identical to `eval_pyin.py`'s input contract** — the README
+    states "column 1: evenly spaced timestamps in seconds / column 2: f0 values in Hz. A
+    value of 0.0 indicates that no f0 is present", which is exactly `time_seconds,hz` with
+    0 for unvoiced. **No converter needed**; the annotations are copied verbatim.
+  - **Rejected on licence:** MedleyDB melody — CC BY-**NC**-SA 4.0 plus an access request;
+    MUSDB18 — academic use only, BY-NC-SA, access-gated (46 of its tracks come from
+    MedleyDB). **MIR-1K — licence could not be verified from any reachable source**, so it
+    is unusable under rule 2 regardless of how well it fits technically.
+  - **Design consequence — synthesize the mixes.** vocadito's vocal (annotated, CC BY) is
+    laid over an accompaniment bed = the `no_vocals` stem demucs produces from an S2-corpus
+    track (CC BY / CC BY-SA), at controlled SNRs. The whole chain stays commercially
+    permissive, and the ground truth stays human rather than extractor-derived, which avoids
+    scoring pyin against itself. **A clean-vocal control run is part of the method, not an
+    extra:** an error figure from a separated stem is uninterpretable alone — it cannot
+    distinguish damage done by separation from the extractor's own error on that singer.
+    The separated-minus-clean delta is the number that answers S3.
+  - **S3 does not need the GPU endpoint.** Separation output is determined by model and
+    weights, not device, so the validated image running demucs on CPU produces stems S3 can
+    score. S3 therefore runs in parallel with the S2 deployment rather than behind it.
+    *(Engineering judgment: CPU/GPU differ in low-order float noise, immaterial to a pitch
+    contour.)*
+  - `zenodo.org` was egress-blocked; Lando allowlisted it 2026-09-01, which is what made
+    vocadito reachable at all.
+
+- **R57.** S3 extractor half — **PASS**, measured 2026-09-01 (method and corpus per R56;
+  code `spikes/s3-melody-eval/{make_mixes.py,run_s3.py}`, scoring by `eval_pyin.py`
+  invoked unmodified). 12 vocadito tracks stratified across **MIDI 47–65 and 7 languages**
+  × **0 / −6 / −12 dB** = 36 mixes, 885 s, beds rotated across the three S2-corpus genres.
+  Separation used the same `demucs.separate --two-stems vocals -n htdemucs` invocation the
+  S2 handler runs (CPU; 16.1 min for all 36).
+  | condition | median ¢ | octave-err | voicing | Δ median ¢ vs clean |
+  |---|---|---|---|---|
+  | clean vocal (control) | 4.2 | 0.15 % | — | — |
+  | separated @ 0 dB | 4.3 | 0.14 % | 99.84 % | +0.1 |
+  | separated @ −6 dB | 4.5 | 0.17 % | 99.83 % | +0.2 |
+  | separated @ −12 dB | 4.7 | 0.17 % | 99.22 % | +0.6 |
+  Worst single track at −12 dB: median 6.2 ¢, octave-err 2.62 %, voicing 90.01 %. Every
+  track, every SNR, clears the proposed gates (octave-err ≤ 5 %, median ≤ 25 ¢, voicing
+  ≥ 85 %) with 5–30× margin. **Gate thresholds remain Lando's to ratify** — ROADMAP leaves
+  S3's numbers to be "defined during the spike", and these were proposed by this session,
+  not agreed.
+  - **⚠ The decisive control: pyin on the UNSEPARATED mix.** Without this, the table above
+    is unfalsifiable — near-perfect scores on separated stems mean nothing if pyin does
+    just as well on the raw mix, since then separation contributes nothing to melody
+    extraction. It does not:
+    | raw mix (no separation) | median ¢ | octave-err | voicing |
+    |---|---|---|---|
+    | @ 0 dB | 11.8 | **52.81 %** | 66.69 % |
+    | @ −6 dB | 159.9 | **87.41 %** | 68.38 % |
+    | @ −12 dB | 251.6 | **97.42 %** | 76.49 % |
+    At −6 dB separation cuts the octave-error rate from **87.41 % to 0.17 %** — roughly
+    500×. So demucs is doing nearly all the work, and doing it almost losslessly for pitch
+    (+0.2 ¢ over a clean vocal).
+  - **Architectural consequence:** stem separation is required for **scoring** (M5), not
+    only for playback stems (M4). Melody extraction on an unseparated mix is not merely
+    worse — at 87–97 % octave errors it is unusable. This strengthens the case for the GPU
+    plane beyond what ADR-0001/0003 argued from playback alone.
+  - **Limitations — read before treating these as production numbers.** The mixes are
+    synthetic: a clean solo vocal laid over a bed, with **no shared reverb, bus compression
+    or mastering**, so a real produced record is harder and these figures are best read as
+    an **upper bound**. The beds are themselves demucs `no_vocals` stems and so may carry
+    residual vocal bleed. vocadito is solo monophonic singing — arguably close to
+    VoxStage's real case (one user singing) but not a produced lead vocal. **Only pYIN was
+    evaluated; ROADMAP S3 also names torchcrepe**, which was not run — pYIN clears the gate
+    so decisively that an ensemble looks unnecessary, but that is judgment, not measurement.
+    A qualitative contour check on a real S2-corpus track (no numeric truth exists for it)
+    is still worth doing once the endpoint is live.
 
 - **R51.** RunPod Serverless worker contract — measured the hard way (2026-08-31, own
   experiments; T1 for this account/platform). Four findings, each from primary evidence:

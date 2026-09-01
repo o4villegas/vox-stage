@@ -42,10 +42,34 @@ acting.
   exists**; Phase 1 still needs its own approval, milestone by milestone.
 - **Phase 0 status:** see the table in `spikes/README.md`. S0 CLOSED (audit complete,
   R50) · S1 CLOSED (pass on device; mic processing all-OFF confirmed, R39–R43) · S4
-  CLOSED (pass with documented deviation, RTT ≈ 70 ms, R45/R47) · S3 client half done
-  (R37). **Sole remaining blocker: S2** — the cloud environment's egress policy denies
-  all RunPod API hosts (R49); the key itself is present. Device pages current on both
-  hosts (GitHub Pages primary, Cloudflare mirror redeployed 2026-08-30).
+  CLOSED (pass with documented deviation, RTT ≈ 70 ms, R45/R47) · **S3 PASS both halves**
+  (R37 scoring math; R56/R57 extractor half — 4.5 median cents / 0.17 % octave-err on
+  separated stems at −6 dB vs 4.2 / 0.15 % on a clean vocal, while the *unseparated* mix
+  scores 87.41 % octave-err, so separation is load-bearing **and** near-lossless; gate
+  thresholds still await Lando's ratification, and only pYIN was run). **S3 did not need
+  the GPU endpoint** — it ran on CPU locally. **Sole remaining blocker: S2**, and it is
+  now narrow. RunPod egress is open and
+  the key authenticates (R53 supersedes R49). The deployment shape is settled (R51, PR #8:
+  the handler must be baked into the image as `CMD`). **The image itself is now built and
+  proven** — this session built PR #8's Dockerfile unchanged (11 GB, ≈10 min) and ran the
+  handler inside it end-to-end, stems out, timings returned (R53). What remains is only
+  *getting that image onto an endpoint*, and this sandbox cannot push (its `GITHUB_TOKEN`
+  is a proxy placeholder, not a credential). Three routes, best first:
+  **(1) RunPod's GitHub integration** — RunPod clones the repo, builds the image itself and
+  stores it in its own registry, so no registry credential exists to need; our worker fits
+  every documented limit (R54). Lando **connected GitHub in the RunPod console 2026-09-01**,
+  so only endpoint creation remains — and that step is **console-only** (R55), reachable by
+  no API surface, so an agent cannot perform it. Deploy from branch
+  `claude/vox-stage-s2-run` (now merged to `main`), Dockerfile path
+  `spikes/s2-runpod-worker/Dockerfile`, **container disk 30 GB** (11 GB image; the SDK
+  hard-kills a worker under 10 % free) and **max workers ≥ 1** (the dead `voxstage-s2-spike`
+  endpoint has `workersMax: 0`, which is exactly why its jobs never ran).
+  **(2) Push from Lando's machine** — Docker Hub credential resolves as `gvo555`, 348.9 GB
+  free (R53); needs the from-desktop bridge, which returned **530 on 2026-09-01**.
+  **(3) Allowlist `proxy.runpod.net` + `ssh.runpod.io`** — both are 403 policy
+  denials, not outages, which reopens the GPU-Pod fallback (R53).
+  Device pages current on both hosts (GitHub Pages primary, Cloudflare mirror redeployed
+  2026-08-30). S2 spend to date: **$0.355**, nothing currently billing (R53).
 - **Product decisions confirmed by Lando (2026-08-28, T/F interview):** reuse prior
   VoxApp/VoxReport tech ("Rangefinder") for profile capture · accounts-first, no
   anonymous mode · 2-stem separation for MVP · live scoring is launch-blocking ·
@@ -67,11 +91,20 @@ acting.
   evaluated → deferred with triggers, plan §3), **`voxstage`/`voxstage-staging`**,
   **Biome**. Still open: sending domain, `CLOUDFLARE_API_TOKEN`, and the M1 go itself —
   merging the plan did NOT authorize the build (rule 1 stands).
-- **Open items awaiting Lando:** allow the RunPod API domains (`api.runpod.ai`,
-  `rest.runpod.io`, `api.runpod.io`) in the cloud environment's network policy, then
-  bounce the session — sole S2 blocker (R49) · sending domain for OTP email ·
-  `CLOUDFLARE_API_TOKEN` repo secret (at build time) · M1 approval after the Phase 0
-  exit report.
+- **PRs #7 and #8 merged 2026-09-01** on Lando's explicit in-session permission
+  ("permission to proceed with merge and deploy"), so the §6 decisions and the S2 worker
+  contract are now on `main`. **One caveat carried forward: R51's "no worker logs exist"
+  is wrong** — it holds only for API v1; API v2 streams them (R55), so M2 is NOT forced to
+  make the worker self-report through its job output.
+- **Open items awaiting Lando:** **the S2 endpoint deploy** — RunPod's GitHub integration
+  is **console-only** (R55: verified across v1 REST, v2 REST and GraphQL), so no agent can
+  do it; the alternatives are a Docker Hub push as `gvo555` (needs the from-desktop bridge,
+  which was returning 530 on 2026-09-01) or allowlisting `proxy.runpod.net` +
+  `ssh.runpod.io` for the Pod route (R53) · **ratify S3's gate thresholds** (R57 proposes
+  octave-err ≤ 5 %, median ≤ 25 ¢, voicing ≥ 85 %; ROADMAP left them undefined) · the two
+  remaining §6 calls (OTP sending domain, `CLOUDFLARE_API_TOKEN` repo secret) · M1 approval
+  after the Phase 0 exit report.
+  **No longer needed:** allowlisting the RunPod *API* domains, or `zenodo.org` — both done.
 - **Sessions:** do NOT spawn sibling sessions via the API — the environment's setup
   script fails them on arrival ("Setup script failed", non-recoverable, verified twice
   2026-08-29). This session owns Phase 0 follow-ups, PR watching, and the exit report.
