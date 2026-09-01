@@ -121,7 +121,7 @@ installation for scale"), verdict: defer, revisit at defined triggers.**
 |---|---|---|
 | 1 | Frontend framework | **DECIDED: React 18 + Vite** — call delegated with a top-tier quality mandate (see §1) |
 | 2 | Email provider + sending domain | **Provider DECIDED: Resend**; OAuth-at-scale evaluated → defer (see §3). **Sending domain still OPEN** |
-| 3 | `CLOUDFLARE_API_TOKEN` repo secret | **OPEN** — Lando provisions at build time, scoped to Workers+D1 |
+| 3 | Deploy path / `CLOUDFLARE_API_TOKEN` repo secret | **DECIDED 2026-09-01 ("my computer" — Lando): M1 deploys from Lando's machine via the from-desktop bridge, using the OAuth-logged-in `wrangler` there (write scopes verified, R59). No repo secret needed for M1.** Caveat recorded: this path only works while his machine and the bridge are up (bridge was 530 on 2026-08-31); revisit GitHub Actions before beta |
 | 4 | Worker/app naming | **DECIDED: `voxstage` + `voxstage-staging`** |
 | 5 | Lint/format | **DECIDED: Biome** |
 | 6 | M1 approval itself | **OPEN** — after the Phase 0 exit report (S2 pending) |
