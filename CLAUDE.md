@@ -42,8 +42,13 @@ acting.
   exists**; Phase 1 still needs its own approval, milestone by milestone.
 - **Phase 0 status:** see the table in `spikes/README.md`. S0 CLOSED (audit complete,
   R50) · S1 CLOSED (pass on device; mic processing all-OFF confirmed, R39–R43) · S4
-  CLOSED (pass with documented deviation, RTT ≈ 70 ms, R45/R47) · S3 client half done
-  (R37). **Sole remaining blocker: S2**, and it is now narrow. RunPod egress is open and
+  CLOSED (pass with documented deviation, RTT ≈ 70 ms, R45/R47) · **S3 PASS both halves**
+  (R37 scoring math; R56/R57 extractor half — 4.5 median cents / 0.17 % octave-err on
+  separated stems at −6 dB vs 4.2 / 0.15 % on a clean vocal, while the *unseparated* mix
+  scores 87.41 % octave-err, so separation is load-bearing **and** near-lossless; gate
+  thresholds still await Lando's ratification, and only pYIN was run). **S3 did not need
+  the GPU endpoint** — it ran on CPU locally. **Sole remaining blocker: S2**, and it is
+  now narrow. RunPod egress is open and
   the key authenticates (R53 supersedes R49). The deployment shape is settled (R51, PR #8:
   the handler must be baked into the image as `CMD`). **The image itself is now built and
   proven** — this session built PR #8's Dockerfile unchanged (11 GB, ≈10 min) and ran the

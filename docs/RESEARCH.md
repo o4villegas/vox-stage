@@ -538,6 +538,50 @@ the cited pages.
   - `zenodo.org` was egress-blocked; Lando allowlisted it 2026-09-01, which is what made
     vocadito reachable at all.
 
+- **R57.** S3 extractor half — **PASS**, measured 2026-09-01 (method and corpus per R56;
+  code `spikes/s3-melody-eval/{make_mixes.py,run_s3.py}`, scoring by `eval_pyin.py`
+  invoked unmodified). 12 vocadito tracks stratified across **MIDI 47–65 and 7 languages**
+  × **0 / −6 / −12 dB** = 36 mixes, 885 s, beds rotated across the three S2-corpus genres.
+  Separation used the same `demucs.separate --two-stems vocals -n htdemucs` invocation the
+  S2 handler runs (CPU; 16.1 min for all 36).
+  | condition | median ¢ | octave-err | voicing | Δ median ¢ vs clean |
+  |---|---|---|---|---|
+  | clean vocal (control) | 4.2 | 0.15 % | — | — |
+  | separated @ 0 dB | 4.3 | 0.14 % | 99.84 % | +0.1 |
+  | separated @ −6 dB | 4.5 | 0.17 % | 99.83 % | +0.2 |
+  | separated @ −12 dB | 4.7 | 0.17 % | 99.22 % | +0.6 |
+  Worst single track at −12 dB: median 6.2 ¢, octave-err 2.62 %, voicing 90.01 %. Every
+  track, every SNR, clears the proposed gates (octave-err ≤ 5 %, median ≤ 25 ¢, voicing
+  ≥ 85 %) with 5–30× margin. **Gate thresholds remain Lando's to ratify** — ROADMAP leaves
+  S3's numbers to be "defined during the spike", and these were proposed by this session,
+  not agreed.
+  - **⚠ The decisive control: pyin on the UNSEPARATED mix.** Without this, the table above
+    is unfalsifiable — near-perfect scores on separated stems mean nothing if pyin does
+    just as well on the raw mix, since then separation contributes nothing to melody
+    extraction. It does not:
+    | raw mix (no separation) | median ¢ | octave-err | voicing |
+    |---|---|---|---|
+    | @ 0 dB | 11.8 | **52.81 %** | 66.69 % |
+    | @ −6 dB | 159.9 | **87.41 %** | 68.38 % |
+    | @ −12 dB | 251.6 | **97.42 %** | 76.49 % |
+    At −6 dB separation cuts the octave-error rate from **87.41 % to 0.17 %** — roughly
+    500×. So demucs is doing nearly all the work, and doing it almost losslessly for pitch
+    (+0.2 ¢ over a clean vocal).
+  - **Architectural consequence:** stem separation is required for **scoring** (M5), not
+    only for playback stems (M4). Melody extraction on an unseparated mix is not merely
+    worse — at 87–97 % octave errors it is unusable. This strengthens the case for the GPU
+    plane beyond what ADR-0001/0003 argued from playback alone.
+  - **Limitations — read before treating these as production numbers.** The mixes are
+    synthetic: a clean solo vocal laid over a bed, with **no shared reverb, bus compression
+    or mastering**, so a real produced record is harder and these figures are best read as
+    an **upper bound**. The beds are themselves demucs `no_vocals` stems and so may carry
+    residual vocal bleed. vocadito is solo monophonic singing — arguably close to
+    VoxStage's real case (one user singing) but not a produced lead vocal. **Only pYIN was
+    evaluated; ROADMAP S3 also names torchcrepe**, which was not run — pYIN clears the gate
+    so decisively that an ensemble looks unnecessary, but that is judgment, not measurement.
+    A qualitative contour check on a real S2-corpus track (no numeric truth exists for it)
+    is still worth doing once the endpoint is live.
+
 ## Absence claims (inherently T2 — cannot prove a negative)
 
 - **R33.** No product found that combines: user-uploaded songs + stem separation + persistent
