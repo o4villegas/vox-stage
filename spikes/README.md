@@ -10,7 +10,7 @@ results get recorded as new entries in docs/RESEARCH.md.
 |---|---|---|---|---|
 | S0 Rangefinder audit | read via desktop connector | partial (R34) → **complete (R50)**: FFT engine confirmed deployed; engine ports, capture harness doesn't; profile algorithm + harness methodology mapped | — | **CLOSED — audit complete, reuse map in R50** |
 | S1 client audio chain | stretch + pitchy bench, headless Chromium | **PASS on desktop CPU** (R35): stretch 22.3× realtime, pitchy 3,824 win/s @ 1.5 mean cents | iPhone iOS 18.7: **playback+shifter PASS twice** (R39, R40); mic runs on GitHub Pages settled the EC question — **all processing OFF** (R41 clean, R42 EC-on collapse) | **CLOSED — pass; guardrail confirmed on device** |
-| S2 RunPod pipeline | handler **validated end-to-end on a real song** (R52): 216.6 s track, both stems, demucs 4.1.0 — CPU 0.45× realtime. **Image builds and runs** (R53): 11 GB, ≈10 min, handler exercised inside it | egress unblocked and key valid (R53); image build-context made deployment-safe (R55) | **blocked only on getting the image onto an endpoint.** Deployment shape settled (R51: handler baked in as `CMD`). This sandbox can build but not push; RunPod's GitHub integration builds from the repo with no registry credential (R54) but is **console-only** (R55) |
+| S2 RunPod pipeline | handler validated end-to-end (R52); image builds and runs (R53); **GPU separation MEASURED on a real A4000 pod (R58): 12.65 s median for a 216 s track = 17.1x realtime, $0.0024/song, vs 485 s on CPU — a ~38x speedup** | egress open, key valid (R53); build context made deployment-safe (R55) | **2 of 3 gates PASS on conservative hardware** — cost ≤$0.03/song (12x margin) and p50 warm ≤60 s (47 s headroom). **Cold-start still unmeasured**: needs a serverless endpoint, and that creation step is console-only (R55) |
 | S3 melody extraction | scoring math property tests (R37); extractor half measured on synthetic mixes with human f0 truth (R56/R57) | **PASS both halves** — separated stems score **4.5 median cents / 0.17% octave-err / 99.8% voicing** at −6 dB, vs **4.2 / 0.15%** on a clean vocal. Decisive control: the *unseparated* mix scores **87.41% octave-err** at the same SNR, so separation is load-bearing and near-lossless | ran on CPU locally — **did not need the GPU endpoint** (R56) | **PASS on proposed gates; thresholds await Lando's ratification.** Only pYIN evaluated (ROADMAP also names torchcrepe); synthetic mixes = upper bound (R57) |
 | S4 latency calibration | xcorr unit tests (R36); v2/v3 harness iterations | v1 alignment invalid on iOS (R44) → v2 validated alignment (R45) → v3 gating rejects noise (R47) | iPhone RTT **≈ 70 ms, spread 7.5 ms across 2 sessions** (R45, R47) | **CLOSED — PASS with documented deviation, accepted by Lando 2026-08-29** |
 
@@ -69,8 +69,31 @@ Two viable routes:
    benchmark below. Give the container generous disk — the SDK kills workers under 10 %
    free (R51).
 
-2. **GPU Pod.** `/pods` in the REST API creates a Pod with shell access, sidestepping the
-   serverless worker contract entirely. Reaching it needs its proxy host allowlisted.
+2. **GPU Pod — USED SUCCESSFULLY 2026-09-01 (R58); no proxy host needed.** An earlier note
+   here said reaching a Pod requires `proxy.runpod.net` to be allowlisted. That is only true
+   if you want a *shell* or an HTTP port. You do not: `POST /v2/pods` takes the benchmark as
+   the container command, and **`GET /v2/pods/{id}/logs`** streams its stdout back as SSE,
+   so results come out through the plain API. This is how S2's GPU numbers were measured
+   while `proxy.runpod.net` was still 403-blocked.
+
+   ```sh
+   # create (A5000/L4/A4500 are often out of stock — fall back to A4000; it is the slowest
+   # serverless tier, so its numbers are a conservative floor)
+   curl -X POST https://api.runpod.io/v2/pods -H "Authorization: Bearer $RUNPOD_API_KEY" \
+     -H 'content-type: application/json' --data @body.json
+   curl -N -H "Authorization: Bearer $RUNPOD_API_KEY" \
+     "https://api.runpod.io/v2/pods/<id>/logs?source=container"
+   curl -X DELETE -H "Authorization: Bearer $RUNPOD_API_KEY" \
+     https://api.runpod.io/v2/pods/<id>          # ALWAYS: a live pod bills by the hour
+   ```
+
+   Two traps: the container **relaunches after its command exits**, so a benchmark repeats
+   until you delete the pod (useful for repeat measurements, expensive if forgotten); and
+   Python `urllib` gets a **Cloudflare 403 (error 1010)** from this API — use curl.
+
+   What a Pod *cannot* measure is serverless **cold-start**, queue behaviour, or real
+   serverless billing. Those need an endpoint, and endpoint creation from a repo is
+   **console-only** (R55).
 
 Once an endpoint serves jobs, the benchmark is written and ready:
 

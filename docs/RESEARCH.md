@@ -627,6 +627,49 @@ the cited pages.
   Rxbyn "Bad Side" (RNB, CC BY), Durch Dick und Dünn "Freifliegen" (Rock, CC BY-SA),
   Wilson Way "Te Recuerdo" (Hip-Hop, CC BY-SA).
 
+- **R58.** S2 GPU separation **measured on real hardware** (2026-09-01), via a RunPod **Pod**
+  rather than a serverless endpoint — see the scope caveat below. Lando gave in-session
+  permission to deploy; the console-only GitHub route (R55) is not reachable by an agent and
+  the from-desktop bridge was returning 530, so the Pod route (R53's option 3) was used
+  instead — `POST /v2/pods` with the benchmark as the container command, results read back
+  through **`GET /v2/pods/{id}/logs`** (the SSE log stream from R55, which is what made this
+  possible without the 403-blocked `proxy.runpod.net`).
+  - **Hardware:** `NVIDIA RTX A4000` (16 GB), COMMUNITY tier, $0.17/hr,
+    `pytorch/pytorch:2.5.1-cuda12.4-cudnn9-runtime`, torch **2.5.1+cu124**, `cuda: true`.
+    A5000/L4/A4500 were all **out of stock** at both SECURE and COMMUNITY (HTTP 400, "no
+    longer any instances available") — A4000 is the *slowest* serverless tier, so every
+    number below is a **conservative floor**.
+  - **Timings** — 3-genre CC corpus, 4 runs per track (the container relaunched after each
+    exit, which conveniently gave repeats):
+    | track | duration | median separation | realtime factor |
+    |---|---|---|---|
+    | rnb | 216.6 s | **12.65 s** | 17.1× |
+    | rock | 250.3 s | **13.30 s** | 18.8× |
+    | hiphop | 193.7 s | **11.56 s** | 16.8× |
+  - **Against the ROADMAP S2 gates:**
+    - **cost ≤ $0.03/song → PASS with ~12× margin.** At the median 12.65 s: **$0.0020/song**
+      on the 16 GB serverless tier ($0.58/hr) and **$0.0024/song** on the 24 GB tier
+      ($0.69/hr). *(Execution cost only — see caveat.)*
+    - **p50 warm ≤ 60 s → PASS.** Separation alone is 12.7 s, leaving **47 s of headroom**
+      for download + upload.
+    - **stems usable across 3 genres → already evidenced**, not re-measured here: R52
+      produced correct stems for a real song, and R57 showed separated vocals track pitch to
+      within 0.2 ¢ of a clean vocal.
+  - **GPU vs CPU: ~38×.** R52 measured the same rnb track at **485 s on CPU** (0.45×
+    realtime); this is **12.65 s** (17.1× realtime). The GPU requirement in ADR-0001/0003 is
+    now measured rather than assumed.
+  - **⚠ SCOPE CAVEAT — this does NOT fully close S2.** A Pod is not a serverless endpoint.
+    Unmeasured: **cold-start / `delayTime`** (R10's independent test saw 563 ms best, 42 s
+    worst), serverless queue behaviour, and RunPod's actual serverless billing granularity
+    as opposed to computed execution cost. Two of three gate criteria are satisfied on
+    conservative hardware; the third needs the endpoint that only the console can create.
+  - **Cost/cleanup:** pod created 15:37:35Z, terminated by API (HTTP 204) after the run,
+    **0 pods remaining** — verified. Pod billing still read $0 at query time (billing lags).
+  - **Also verified as a side-effect:** R9's serverless pricing, from
+    `GET /v2/catalog/gpus` — L4 and A5000 serverless **$0.69/hr**, A4000/A4500 **$0.58/hr**,
+    matching R9's secondary sourcing exactly (Pod tiers are cheaper: A4000 $0.17 community /
+    $0.25 secure).
+
 ## Absence claims (inherently T2 — cannot prove a negative)
 
 - **R33.** No product found that combines: user-uploaded songs + stem separation + persistent

@@ -54,22 +54,28 @@ acting.
   proven** — this session built PR #8's Dockerfile unchanged (11 GB, ≈10 min) and ran the
   handler inside it end-to-end, stems out, timings returned (R53). What remains is only
   *getting that image onto an endpoint*, and this sandbox cannot push (its `GITHUB_TOKEN`
-  is a proxy placeholder, not a credential). Three routes, best first:
-  **(1) RunPod's GitHub integration** — RunPod clones the repo, builds the image itself and
-  stores it in its own registry, so no registry credential exists to need; our worker fits
-  every documented limit (R54). Lando **connected GitHub in the RunPod console 2026-09-01**,
-  so only endpoint creation remains — and that step is **console-only** (R55), reachable by
-  no API surface, so an agent cannot perform it. Deploy from branch
-  `claude/vox-stage-s2-run` (now merged to `main`), Dockerfile path
+  is a proxy placeholder, not a credential).
+  **GPU performance is now MEASURED (R58)** — a RunPod *Pod* (created via `POST /v2/pods`,
+  results read back through `GET /v2/pods/{id}/logs`, pod terminated after) ran the 3-genre
+  corpus on an A4000: **12.65 s median for a 216 s track = 17.1x realtime, ~$0.0024/song**,
+  against 485 s on CPU — a **~38x** speedup that turns ADR-0001/0003's GPU requirement from
+  assumption into measurement. **2 of 3 S2 gates PASS** (cost ≤$0.03/song with 12x margin;
+  p50 warm ≤60 s with 47 s of headroom) on the *slowest* serverless tier.
+  **What still blocks S2's closure: cold-start**, which needs a real serverless endpoint.
+  Endpoint creation from a repo is **console-only (R55)** — verified across v1 REST, v2 REST
+  and GraphQL, so no agent can do it. Lando connected GitHub in the RunPod console
+  2026-09-01; only the endpoint creation step remains. Deploy from `main`, Dockerfile path
   `spikes/s2-runpod-worker/Dockerfile`, **container disk 30 GB** (11 GB image; the SDK
-  hard-kills a worker under 10 % free) and **max workers ≥ 1** (the dead `voxstage-s2-spike`
-  endpoint has `workersMax: 0`, which is exactly why its jobs never ran).
-  **(2) Push from Lando's machine** — Docker Hub credential resolves as `gvo555`, 348.9 GB
-  free (R53); needs the from-desktop bridge, which returned **530 on 2026-09-01**.
-  **(3) Allowlist `proxy.runpod.net` + `ssh.runpod.io`** — both are 403 policy
-  denials, not outages, which reopens the GPU-Pod fallback (R53).
+  hard-kills a worker under 10 % free) and **max workers >= 1** (the dead `voxstage-s2-spike`
+  endpoint has `workersMax: 0`, which is exactly why its jobs never ran). Fallbacks: a Docker
+  Hub push as `gvo555` (needs the from-desktop bridge, 530 on 2026-09-01), or allowlisting
+  `proxy.runpod.net` + `ssh.runpod.io` (R53) — though R58 showed the Pod route does **not**
+  need those hosts.
   Device pages current on both hosts (GitHub Pages primary, Cloudflare mirror redeployed
-  2026-08-30). S2 spend to date: **$0.355**, nothing currently billing (R53).
+  2026-08-30). S2 spend: **$0.355 through 2026-08-31 (R53)** plus one ~6-minute A4000 pod at
+  $0.17/hr for R58 (billing lagged at $0 when queried). **Nothing is running** — the pod was
+  terminated and verified gone; the leftover `voxstage-s2-spike` endpoint has `workersMax: 0`
+  and cannot bill.
 - **Product decisions confirmed by Lando (2026-08-28, T/F interview):** reuse prior
   VoxApp/VoxReport tech ("Rangefinder") for profile capture · accounts-first, no
   anonymous mode · 2-stem separation for MVP · live scoring is launch-blocking ·
@@ -91,9 +97,9 @@ acting.
   evaluated → deferred with triggers, plan §3), **`voxstage`/`voxstage-staging`**,
   **Biome**. Still open: sending domain, `CLOUDFLARE_API_TOKEN`, and the M1 go itself —
   merging the plan did NOT authorize the build (rule 1 stands).
-- **PRs #7 and #8 merged 2026-09-01** on Lando's explicit in-session permission
-  ("permission to proceed with merge and deploy"), so the §6 decisions and the S2 worker
-  contract are now on `main`. **One caveat carried forward: R51's "no worker logs exist"
+- **PRs #7, #8 and #9 all merged 2026-09-01** on Lando's explicit in-session permission
+  ("permission to proceed with merge and deploy"), so the §6 decisions, the S2 worker
+  contract and the S3 harness + R53–R57 are now on `main`. **One caveat carried forward: R51's "no worker logs exist"
   is wrong** — it holds only for API v1; API v2 streams them (R55), so M2 is NOT forced to
   make the worker self-report through its job output.
 - **Open items awaiting Lando:** **the S2 endpoint deploy** — RunPod's GitHub integration
