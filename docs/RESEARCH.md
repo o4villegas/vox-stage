@@ -704,6 +704,24 @@ the cited pages.
     PR #6. The bridge's `env` parameter does **not** expand `$VAR` (sent literally).
   - **Sandbox Docker daemon starts fine** (29.3.1, overlayfs) — the R53 build can be
     repeated here; a push needs a valid `DOCKER_API_KEY`.
+  - **Later the same evening — Pages Git connection + wrangler-over-bridge facts.** Lando
+    connected the `voxstage-spikes` Pages project to the repo (console). Its first auto-build
+    (deployment `9da55c5b`, from `67a5313`, blank build config) published the raw repo tree:
+    `/CLAUDE.md` → 200, `/s1/` → 404 (cloudflare-docs `pages/configuration/build-configuration`
+    confirms a blank root directory = repo root). Restored by a direct upload of the staged
+    `site/` from Lando's machine (deployment `52a01043`, `/`, `/s1/`, `/s4/` → 200).
+    **wrangler through the from-desktop bridge is non-TTY, and in that mode `wrangler pages
+    deploy` refuses the OAuth login and demands `CLOUDFLARE_API_TOKEN`** (measured); wrapping
+    the command in `script -q -c "…" /dev/null` gives it a pseudo-TTY and it proceeds on the
+    OAuth token. The bridge's own call ceiling is **60 s regardless of `timeout_ms`**, so a
+    deploy must be backgrounded (`nohup … &`) and its log read on a later call. **Workers
+    Builds** (cloudflare-docs `workers/ci-cd/builds/`) is verified as a token-free deploy
+    path: Cloudflare pulls from GitHub and runs `npx wrangler deploy` on the production
+    branch, `npx wrangler versions upload` on others. Also installed Cloudflare's official
+    Claude Code plugin per `developers.cloudflare.com/agent-setup/prompt.md` (fetched via the
+    bridge; the vendor host is egress-blocked here): 13 skills + 5 MCP server definitions,
+    **user-scoped in this ephemeral container only** — it does not persist across sessions,
+    and its MCP servers need an interactive OAuth this session cannot perform.
 
 ## Absence claims (inherently T2 — cannot prove a negative)
 
