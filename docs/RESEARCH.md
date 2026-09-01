@@ -357,20 +357,93 @@ the cited pages.
     exposes 23 paths — endpoints, templates, pods, network volumes, billing, and
     `containerregistryauth` — with **no build or git-source route**. A template can only
     point at an image some registry already serves. (`containerregistryauth` does allow a
-    *private* registry pull, so the pushed image need not be public.)
-  - **This sandbox still cannot produce that image.** `docker` CLI 29.3.1 is installed but
-    **there is no daemon** (`/var/run/docker.sock` missing) — build and pull both fail. So
-    R51's conclusion holds for a different reason than assumed: registry *reachability* is
-    fine (hub.docker.com 200, registry-1.docker.io and ghcr.io both answer), but there is
-    no engine to build with.
-  - **The GPU-Pod fallback is still blocked from here.** `proxy.runpod.net` and
-    `ssh.runpod.io` are both unreachable (connect fails, no HTTP status), so a Pod could be
-    *created* via `POST /pods` but not *reached* to run anything.
-  - **Lando's machine is the ready path** (from-desktop bridge, verified 2026-09-01):
-    Docker **28.4.0 with a running daemon**, already authenticated to Docker Hub
-    (`index.docker.io` in `~/.docker/config.json`), **834 GB free disk** — enough for the
-    R51 disk-headroom trap. No local GPU (build/push only; the GPU stays RunPod's).
-    `vox-stage` is **not yet cloned** there.
+    *private* registry pull, so the pushed image need not be public.) RunPod *can* build
+    from a repo, but only through the console — see R54.
+  - **THIS SANDBOX CAN BUILD THE IMAGE — and did.** An earlier draft of this entry claimed
+    it could not, on the strength of `docker info` failing. That was wrong: `dockerd`,
+    `containerd` and `runc` are all installed and the daemon simply was not started.
+    Started it (`dockerd --host=unix:///var/run/docker.sock`, up in 2 s, Docker 29.3.1,
+    overlayfs, buildkit) and registry pulls work.
+  - **First build failed for a sandbox reason, not a Dockerfile defect.** `pip install`
+    died with `SSLError: certificate verify failed: self-signed certificate in certificate
+    chain` — this environment's TLS-intercepting egress proxy, whose CA the build container
+    does not trust. `runpod` failed identically to `demucs`, which is what rules out a
+    package-specific cause; the surface error `No matching distribution found for demucs`
+    is misleading. Fix is documented in `/root/.ccr/README.md`: build with `--network
+    host`, copy `/root/.ccr/ca-bundle.crt` into the context, set `PIP_CERT` /
+    `REQUESTS_CA_BUNDLE` / `SSL_CERT_FILE` and the proxy vars. **Only needed inside this
+    sandbox — the committed Dockerfile must NOT carry it.**
+  - **PR #8's Dockerfile is sound, built with only that overlay added.** Result:
+    `DOCKER_BUILD_EXIT=0`, image **11 GB**. Layer timings — apt/ffmpeg 48.7 s ·
+    `pip install demucs runpod requests` 29.5 s · weight preload (htdemucs +
+    hdemucs_mmi) 326.4 s · export 27.9 s; **≈10 min including the 146 s base pull**,
+    comfortably inside RunPod's 30-minute docker-build cap (R54).
+  - **Resolved versions match R52's measured baseline exactly:** demucs **4.1.0**, torch
+    **2.5.1+cu124**, torchaudio 2.5.1+cu124, runpod SDK **1.12.0**, numpy 2.1.2, requests
+    2.34.2. The deps are unpinned, so this is today's resolution, not a guarantee —
+    pinning `demucs==4.1.0` and `runpod==1.12.0` would make the image reproducible against
+    R52. (demucs 4.1.0 is the current PyPI release, published 2026-07-11, `requires_python
+    >=3.10`; the base image ships Python 3.11.10.)
+  - **The handler was validated INSIDE the built image**, via the RunPod SDK's local mode
+    (R51 finding 3): served a 15 s MP3 over `--network host`, ran the image with no
+    `RUNPOD_WEBHOOK_GET_JOB`, and it consumed `test_input.json` and returned
+    `separate_s 19.96 · audio_duration_s 15.05 · realtime_factor 0.75 (CPU, no GPU)` with
+    both stems produced (2,654,252 bytes each) and `cuda_available: false`. So the whole
+    URL-in → separate → timings contract works in the real image, not just as a loose
+    script. *(0.75× here vs R52's 0.45× is a different CPU and a 15 s clip — fixed
+    overhead amortizes differently. Not comparable, and neither is the GPU gate figure.)*
+  - **What this sandbox still cannot do is PUSH.** `GITHUB_TOKEN`/`GH_TOKEN` are 14-char
+    proxy placeholders (`prox…`), not real credentials — git auth is injected by the proxy
+    (`gitConfigInjection: true`), so there is nothing to hand `docker login`. This
+    corroborates R51's ghcr.io finding. Registry *reachability* is fine
+    (hub.docker.com 200, registry-1.docker.io and ghcr.io both answer).
+  - **The GPU-Pod fallback is blocked by egress POLICY, not unreachability.** Both hosts
+    resolve in DNS; the proxy's own status endpoint records
+    `connect_rejected — gateway answered 403 to CONNECT (policy denial)` for
+    `proxy.runpod.net:443` and `ssh.runpod.io:443`. An earlier draft called them
+    "unreachable" after probing only the apex domain, which proves nothing about
+    `<podid>-<port>.proxy.runpod.net`. **So an allowlist ask is still live** — the three
+    RunPod *API* domains were allowlisted, these two were not. (`docs.runpod.io` and
+    `www.runpod.io` are blocked too; use the `runpod/docs` GitHub repo instead, the same
+    workaround CLAUDE.md prescribes for Cloudflare.)
+  - **Lando's machine is a working push path** (from-desktop bridge, verified 2026-09-01):
+    Docker **28.4.0, daemon up**, Docker Hub credential **resolves** — username `gvo555`,
+    served by the Docker Desktop credential helper (`credsStore: desktop.exe`, a WSL
+    setup; the `auths` entry itself is empty, so an earlier "already authenticated
+    per config.json" reading was right by luck, not by evidence). Docker's **actual**
+    daemon disk has **348.9 GB free** (1006.9 GB total, 606.8 GB used) — an earlier draft
+    quoted 834 GB, which is the WSL *user* distro's disk, not the one the daemon writes
+    to. No local GPU. `vox-stage` is **not yet cloned** there.
+- **R54.** RunPod builds images from GitHub — verified against the docs source repo
+  (`github.com/runpod/docs` @ `d5b565d`, `serverless/workers/github-integration.mdx`,
+  read 2026-09-01), because `docs.runpod.io` and `www.runpod.io` are both egress-blocked.
+  "Runpod's GitHub integration simplifies your workflow by pulling your code and Dockerfile
+  from GitHub, building the container image, storing it in Runpod's secure container
+  registry, and deploying it to your endpoint." **This removes the registry-credential
+  blocker entirely.**
+  - **Console-only**, consistent with R53's finding that the REST API has no build route.
+    One-time authorization: console Settings → Connections → **GitHub** → Connect. Then
+    Serverless → New Endpoint → **Import Git Repository** → pick repo, **Branch**, and
+    **Dockerfile Path**.
+  - **Updates require creating a GitHub *release***, not merely a push: "When you make
+    changes to your GitHub repository, they won't automatically be pushed to your endpoint.
+    To trigger an update … create a new release." (Secondary summaries claiming every push
+    redeploys are wrong — this is from the primary source.) Rollback to any previous build
+    is supported from the console.
+  - **Limits, all satisfied by our worker:** `docker build` ≤ **30 min** (ours ≈10 min,
+    R53) · total build window ≤ 160 min · image ≤ **80 GB** (ours 11 GB) · **no privately
+    hosted base images** (ours is public `pytorch/pytorch`) · **no GPU during build**
+    (ours preloads weights on CPU) · one GitHub account per RunPod account.
+  - **Caveat worth carrying into M2:** "Images built through Runpod's image builder service
+    are designed exclusively for Runpod's infrastructure and cannot be pulled or executed
+    on other platforms." Fine for a spike; it is soft lock-in for production, so M2 should
+    decide deliberately between this and a normal registry push.
+  - **[judgment] Open risk — build context.** The docs expose a *Dockerfile Path* setting
+    but never state what directory becomes the build context. Our Dockerfile sits at
+    `spikes/s2-runpod-worker/Dockerfile` and does `COPY handler.py /handler.py`, which
+    resolves only if the context is that directory. If RunPod uses the repo root, the COPY
+    fails and the fix is one line (`COPY spikes/s2-runpod-worker/handler.py`). Unverified —
+    the first build attempt will settle it.
 
 ## Absence claims (inherently T2 — cannot prove a negative)
 

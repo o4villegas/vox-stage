@@ -43,15 +43,21 @@ acting.
 - **Phase 0 status:** see the table in `spikes/README.md`. S0 CLOSED (audit complete,
   R50) · S1 CLOSED (pass on device; mic processing all-OFF confirmed, R39–R43) · S4
   CLOSED (pass with documented deviation, RTT ≈ 70 ms, R45/R47) · S3 client half done
-  (R37). **Sole remaining blocker: S2**, and its blocker has MOVED — RunPod egress is
-  now open and the key authenticates (R53 supersedes R49). What blocks S2 is the
-  **deployment shape** (R51, in PR #8): a RunPod serverless worker must have the handler
-  baked into the image as `CMD`, so S2 needs a built-and-pushed image. This sandbox has
-  the `docker` CLI but **no daemon**, and `proxy.runpod.net`/`ssh.runpod.io` are
-  unreachable, so neither the build nor the GPU-Pod fallback can run here; **Lando's
-  machine can** (Docker 28.4.0 daemon up, already logged into Docker Hub, 834 GB free —
-  R53). Device pages current on both hosts (GitHub Pages primary, Cloudflare mirror
-  redeployed 2026-08-30). S2 spend to date: **$0.355**, nothing currently billing (R53).
+  (R37). **Sole remaining blocker: S2**, and it is now narrow. RunPod egress is open and
+  the key authenticates (R53 supersedes R49). The deployment shape is settled (R51, PR #8:
+  the handler must be baked into the image as `CMD`). **The image itself is now built and
+  proven** — this session built PR #8's Dockerfile unchanged (11 GB, ≈10 min) and ran the
+  handler inside it end-to-end, stems out, timings returned (R53). What remains is only
+  *getting that image onto an endpoint*, and this sandbox cannot push (its `GITHUB_TOKEN`
+  is a proxy placeholder, not a credential). Three routes, best first:
+  **(1) RunPod's GitHub integration** — RunPod clones the repo, builds the image itself and
+  stores it in its own registry, so no registry credential exists to need; one-time console
+  authorization by Lando; our worker fits every documented limit (R54).
+  **(2) Push from Lando's machine** — Docker Hub credential resolves as `gvo555`, 348.9 GB
+  free (R53). **(3) Allowlist `proxy.runpod.net` + `ssh.runpod.io`** — both are 403 policy
+  denials, not outages, which reopens the GPU-Pod fallback (R53).
+  Device pages current on both hosts (GitHub Pages primary, Cloudflare mirror redeployed
+  2026-08-30). S2 spend to date: **$0.355**, nothing currently billing (R53).
 - **Product decisions confirmed by Lando (2026-08-28, T/F interview):** reuse prior
   VoxApp/VoxReport tech ("Rangefinder") for profile capture · accounts-first, no
   anonymous mode · 2-stem separation for MVP · live scoring is launch-blocking ·
@@ -79,11 +85,12 @@ acting.
     validated end-to-end on a real song; CPU separation 0.45× realtime, which is why GPU
     is required). Also marks the `dockerStartCmd` bootstrap a dead end so no future
     session retries it.
-- **Open items awaiting Lando:** merge PRs #7 and #8 · get a Demucs image built and
-  pushed from his machine so S2 can take its gate measurements (R53 — the cloud session
-  cannot build or reach a Pod) · the two remaining §6 calls (OTP sending domain,
+- **Open items awaiting Lando:** merge PRs #7, #8, #9 · **pick an S2 deployment route** —
+  authorize RunPod's GitHub integration in the console (preferred, R54), or supply a Docker
+  Hub token / run the push himself as `gvo555`, or allowlist `proxy.runpod.net` +
+  `ssh.runpod.io` for the Pod route (R53) · the two remaining §6 calls (OTP sending domain,
   `CLOUDFLARE_API_TOKEN` repo secret) · M1 approval after the Phase 0 exit report.
-  **No longer needed:** the RunPod egress allowlist — that resolved itself (R53).
+  **No longer needed:** allowlisting the RunPod *API* domains — already done (R53).
 - **Sessions:** do NOT spawn sibling sessions via the API — the environment's setup
   script fails them on arrival ("Setup script failed", non-recoverable, verified twice
   2026-08-29). This session owns Phase 0 follow-ups, PR watching, and the exit report.
