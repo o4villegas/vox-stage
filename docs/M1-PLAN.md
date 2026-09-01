@@ -20,11 +20,17 @@ All five actively maintained (latest publishes ≤ 11 days old at check). TypeSc
 throughout; Vite for the SPA build; Playwright headless smoke reuses the spike pattern
 (R35's bench harness approach).
 
-**Frontend framework — needs Lando's call (§6).** Recommendation: **React 18 + Vite**,
-SPA-only per ADR-0008 (no SSR). Rationale: largest ecosystem for the later Capacitor
-phase and for hiring; the audio engine itself stays framework-free (plain Web Audio
-modules ported from the spikes/Rangefinder), so the framework only renders UI and can be
-swapped cheaply before M4 if desired.
+**Frontend framework — DECIDED 2026-08-30: React 18 + Vite** (SPA-only per ADR-0008, no
+SSR), chosen under authority Lando delegated with his answer to the framework question.
+His stated bar, recorded as a product requirement: *"this frontend needs to be better
+than the highest grossing app today… whatever it takes to get there."* Engineering
+reading of that mandate: framework choice is not what produces top-tier feel — design
+system, motion/interaction craft, latency budgets, and audio-UX polish are — so the
+framework pick optimizes for ecosystem (Capacitor phase, component libraries, hiring)
+while the quality bar is carried by dedicated design/polish work in every milestone and
+a hardening pass at M6. The audio engine stays framework-free either way (plain Web
+Audio modules ported from the spikes/Rangefinder), so the framework only renders UI and
+remains swappable before M4.
 
 ## 2. Repository layout (proposed)
 
@@ -67,8 +73,25 @@ Middleware: cookie → `sessions` lookup → `c.set("user", …)`; everything ou
 D1 tables in M1: `users`, `otp_codes`, `sessions` (subset of the ARCHITECTURE §6 sketch;
 the rest arrive with M2+ migrations).
 
-**Email provider — needs Lando's call (§6).** Candidates: Resend / Postmark / AWS SES.
-All work via plain HTTPS from a Worker. Also needs a sending domain decision.
+**Email provider — DECIDED 2026-08-30: Resend** ("resend is preferred" — Lando). Still
+needed before build: a **sending domain** (none named yet), and Resend's current
+pricing/limits re-verified against its own docs at build time (rule 3).
+
+**OAuth / social login — evaluated 2026-08-30 (Lando: "evaluate investment in oauth
+installation for scale"), verdict: defer, revisit at defined triggers.**
+
+- Today (ADR-0006): email-OTP only. That keeps the App Store guideline 4.8 exemption —
+  own-account-only auth is exempt from the Sign in with Apple requirement (R27).
+- Cost of adding any third-party OAuth (e.g. Google): the 4.8 exemption is lost, so the
+  App Store build must then also offer **Sign in with Apple** — i.e., OAuth arrives as a
+  minimum of two providers plus an account-linking model (email as join key, collision
+  policy), token validation server-side, extra attack surface, and a superseding ADR for
+  ADR-0006.
+- Benefit at scale *(judgment, unmeasured)*: one-tap sign-in typically beats OTP on
+  signup conversion and removes the email-deliverability dependency from the hot path.
+- **Recommendation:** beta ships OTP-only. Revisit when either trigger fires:
+  (a) App Store submission phase begins, or (b) measured signup abandonment at the OTP
+  step becomes a top-3 funnel loss. If added, add Google + Apple together in one change.
 
 ## 4. CI + deploy pipeline
 
@@ -92,16 +115,16 @@ All work via plain HTTPS from a Worker. Also needs a sending domain decision.
   (sign-in with `AUTH_DEV_ECHO` code path), reusing the spike browser tooling.
 - Every CI check runnable locally with one command each (`npm run lint|typecheck|test`).
 
-## 6. Decisions needing Lando before build
+## 6. Decisions — status as of 2026-08-30 (Lando, in-session)
 
-| # | Decision | Recommendation |
+| # | Decision | Status |
 |---|---|---|
-| 1 | Frontend framework | React 18 + Vite (swappable pre-M4) |
-| 2 | Email provider + sending domain | pick one of Resend/Postmark/SES; needs a domain (do we own voxstage.* anything?) |
-| 3 | `CLOUDFLARE_API_TOKEN` repo secret | Lando provisions, scoped to Workers+D1 |
-| 4 | Worker/app naming (`voxstage` + `voxstage-staging`?) | as proposed |
-| 5 | Biome (vs ESLint+Prettier) | Biome |
-| 6 | M1 approval itself | after Phase 0 exit report |
+| 1 | Frontend framework | **DECIDED: React 18 + Vite** — call delegated with a top-tier quality mandate (see §1) |
+| 2 | Email provider + sending domain | **Provider DECIDED: Resend**; OAuth-at-scale evaluated → defer (see §3). **Sending domain still OPEN** |
+| 3 | `CLOUDFLARE_API_TOKEN` repo secret | **OPEN** — Lando provisions at build time, scoped to Workers+D1 |
+| 4 | Worker/app naming | **DECIDED: `voxstage` + `voxstage-staging`** |
+| 5 | Lint/format | **DECIDED: Biome** |
+| 6 | M1 approval itself | **OPEN** — after the Phase 0 exit report (S2 pending) |
 
 ## 7. Estimate & sequencing (judgment)
 
