@@ -38,8 +38,9 @@ acting.
   instruction — `docs/ARCHITECTURE.md` is the working architecture and ADRs 0001–0008 are
   Accepted.
 - **Phase:** Phase 0 **approved by Lando ("go", 2026-08-28) and in progress.** Spike code
-  lives in `/spikes/` (throwaway — never graduates into the app). **No application code
-  exists**; Phase 1 still needs its own approval, milestone by milestone.
+  lives in `/spikes/` (throwaway — never graduates into the app). **M1 application code now
+  exists on branch `claude/vox-stage-m1` (draft PR #12, 2026-09-03)** — see the M1 bullet
+  below. M2+ still need their own approval, milestone by milestone.
 - **Phase 0 status:** see the table in `spikes/README.md`. S0 CLOSED (audit complete,
   R50) · S1 CLOSED (pass on device; mic processing all-OFF confirmed, R39–R43) · S4
   CLOSED (pass with documented deviation, RTT ≈ 70 ms, R45/R47) · **S3 PASS both halves**
@@ -109,6 +110,24 @@ acting.
   Worker (no token needed). **(2) S3 gates RATIFIED** (octave-err ≤ 5 %, median ≤ 25 ¢,
   voicing ≥ 85 %) — **S3 is CLOSED**. Still open: S2 endpoint path (A/B/C), Resend sending
   domain. **Handoff to a local agent: `docs/HANDOFF-2026-09-03.md`.**
+- **M1 IN PROGRESS — local session 2026-09-03 (R60):** branch `claude/vox-stage-m1`
+  (from PR #11's branch), **draft PR #12**. Commit 1 = the §8 skeleton → the **Workers
+  Builds check went green** (build `27fc48c8`) and preview URLs exist
+  (`https://claude-vox-stage-m1-voxstage-staging.lando555.workers.dev`, branch alias).
+  Commit 2 = the full scaffold: Vite + React 19 app, Hono API with email-OTP auth
+  (`/api/auth/request-code|verify|logout|me`, `/api/hello`), D1 schema **applied to the
+  new `voxstage-staging` database** (`7216c05f-8552-4319-ae20-6e4c66e70c99`), Biome,
+  27 passing tests (workerd + jsdom), GitHub Actions CI (no deploy). **Build-time
+  deviations from the plan (all recorded in `docs/M1-PLAN.md` §9):** React 19.2 not 18;
+  TypeScript pinned 5.9.3 (7.0 is latest); `@cloudflare/vitest-plugin` replaces
+  `vitest-pool-workers`; deploys are Workers Builds not GitHub Actions; a
+  `postinstall` build bridge stands in for the dashboard Build command. **Needs Lando
+  (each ~1 min, dashboard):** (a) Worker → Settings → Build → Build command
+  `npm run build`; (b) Worker → Settings → Variables and Secrets → add secret
+  `RESEND_API_KEY` (the test sender only reaches the Resend account owner's inbox —
+  sign in with that address); (c) merge PR #12 when the phone sign-in is confirmed.
+  `AUTH_DEV_ECHO=1` on staging writes each code to the Worker log (`wrangler tail`) —
+  flip to `0` before external beta users.
 - **Product decisions confirmed by Lando (2026-08-28, T/F interview):** reuse prior
   VoxApp/VoxReport tech ("Rangefinder") for profile capture · accounts-first, no
   anonymous mode · 2-stem separation for MVP · live scoring is launch-blocking ·

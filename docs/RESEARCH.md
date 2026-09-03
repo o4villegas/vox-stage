@@ -730,6 +730,78 @@ the cited pages.
     `wrangler.jsonc` + a Worker entry at the project root. Preview builds use
     `versions upload`, production (`main`) uses `wrangler deploy`, matching the docs.
 
+- **R60.** M1 build-time verifications (2026-09-03 UTC, local WSL session on Lando's
+  machine — it reaches `api.cloudflare.com`, npm, Resend docs; R59's egress wall does not
+  apply here). Sources: npm registry (`npm view`), cloudflare-docs pages named inline,
+  resend.com/docs, and commands run in this session.
+  - **npm versions at pin time:** `hono` 4.13.5 · `wrangler` 4.128.0 (2026-09-01) ·
+    `vitest` 4.1.11 · **`@cloudflare/vitest-plugin` 1.1.3** — the Workers Vitest
+    integration was **renamed** from `@cloudflare/vitest-pool-workers` (cloudflare-docs
+    changelog 2026-08-19; the old name still publishes, 0.22.0) · `@biomejs/biome` 2.5.11 ·
+    **`react` 19.2.8** (the React 18 line ends at 18.3.1; the 2026-08-30 "React 18 + Vite"
+    decision is taken as "React + Vite", major re-verified per rule 3) · `vite` 8.2.2
+    (`@vitejs/plugin-react` 6.1.1 requires vite ^8) · **`typescript` latest is 7.0.2**
+    (the new compiler line) — pinned **5.9.3** for ecosystem safety · `@types/node` 22.20.1.
+    Peer ranges checked: vitest-plugin needs vitest ^4.1; vitest supports vite ^6–^8.
+  - **Workers Builds** (`workers/ci-cd/builds/configuration/`, `build-image/`,
+    `api-reference/`): "Currently, Workers Builds does **not** honor the configurations
+    set in Custom Builds within your Wrangler configuration file" — the Build command is a
+    dashboard/API setting; dependencies are installed automatically (opt out with
+    `SKIP_DEPENDENCY_INSTALL`); build image Node default **24.18.0**, **22.23.2
+    preinstalled**, overridable via `NODE_VERSION`, `.nvmrc` or `.node-version`; default
+    deploy commands `npx wrangler deploy` (production branch) and `npx wrangler versions
+    upload` (other branches), and "Workers Builds will use the Wrangler version set in
+    your package.json". The **Builds API requires a user-scoped token** with "Workers
+    Builds Configuration: Edit" (+ "Workers Scripts: Read"); account tokens "are not
+    supported". **Measured:** wrangler's OAuth token → `GET /workers/scripts` 200 (the
+    `voxstage-staging` tag is `652ed635955f466182fee9b7e2d76f5b`) but
+    `GET /builds/workers/{tag}/triggers` → **403 `Authentication error` (code 10000)**, so
+    no agent on this machine can set the Build command; Lando must (dashboard, ~1 min).
+    Interim: `"postinstall": "npm run build"` in package.json builds `app/dist` during the
+    automatic install.
+  - **Preview URLs** (`workers/versions-and-deployments/preview-urls/`): `preview_urls`
+    config key (wrangler ≥ 3.91); on wrangler ≥ 4.44 it defaults to the `workers_dev`
+    setting; Workers Builds posts a **branch alias** `<branch>-<worker>.<subdomain>.workers.dev`
+    plus a per-commit URL as a PR comment. **Measured:** skeleton commit `2f8dda4` → build
+    `27fc48c8` **success** (started 2026-09-03T00:53:55Z; the first green check on this
+    repo) → `https://claude-vox-stage-m1-voxstage-staging.lando555.workers.dev/` 200
+    text/html and `/api/ping` → `{"ok":true,"service":"voxstage-staging",…}`. The
+    §8 skeleton dry-run reproduced locally: exit 0, `Total Upload: 0.36 KiB`.
+  - **Static assets** (`workers/static-assets/routing/single-page-application/`):
+    `run_worker_first` accepts an array of patterns (wrangler ≥ 4.20), paired with
+    `not_found_handling: "single-page-application"` — used as `["/api/*"]`.
+  - **Remote bindings** (`workers/local-development/#remote-bindings`, GA 2025-09-16):
+    `"remote": true` on a D1 binding makes `wrangler dev` proxy to the deployed database
+    while code runs locally; supported by wrangler, the Vite plugin and the Vitest plugin
+    (`remoteBindings` option — set **false** in `vitest.config.ts` so tests stay isolated).
+  - **Vitest plugin v1 API** (`…/migrate-from-vitest-3-to-vitest-4/`, `…/test-apis/`):
+    `fetchMock` from `cloudflare:test` is **removed** ("Mock `globalThis.fetch` directly
+    or use … MSW"); `env`/`SELF` from `cloudflare:test` are deprecated in favour of
+    `import { env, exports } from "cloudflare:workers"` with `exports.default.fetch()`
+    ("runs in the same isolate/context as tests so any global mocks will apply");
+    storage isolation is per test file. Verified by the passing suite: 27/27.
+  - **D1:** `voxstage-staging` created 2026-09-03T00:55:51Z, id
+    `7216c05f-8552-4319-ae20-6e4c66e70c99`, region ENAM; `0001_init.sql` applied
+    `--remote` (7 statements; tables users, otp_codes, sessions, rate_limits + d1_migrations).
+  - **Resend** (`resend.com/docs/knowledge-base/403-error-resend-dev-domain`,
+    `…/api-reference/emails/send-email`): with the test sender `onboarding@resend.dev`
+    "You can only send testing emails to your own email address" — a 403 otherwise; to
+    reach anyone else, verify a domain and use it in `from`. API: `POST
+    https://api.resend.com/emails`, `Authorization: Bearer`, body `from`/`to`/`subject`/
+    `html`/`text`, success `{"id": …}`. So the M1 phone test can run on the test sender
+    **only if Lando signs in with the email that owns the Resend account**.
+  - **This machine:** none of the cloud-session secrets exist as env vars here
+    (`CLOUDFLARE_API_TOKEN`, `RESEND_API_KEY`, `RUNPOD_API_KEY`, `DOCKER_API_KEY`, AWS keys
+    all absent); `gh` is logged in as o4villegas (`repo` scope) and HTTPS push works;
+    `wrangler` is OAuth-logged-in with `workers`, `d1`, `queues`, `pages` write; Node
+    22.21.1; the Docker CLI is not installed in this WSL distro (Docker Desktop
+    integration off). `wrangler versions upload --dry-run` also passes with **no**
+    Cloudflare credentials (HOME pointed at an empty dir) — so the CI dry-run step is safe.
+  - Traps met: a `.d.ts` beside a same-named `.ts` (`env.d.ts` next to `env.ts`) is
+    silently ignored by tsc (renamed to `bindings.d.ts`); Biome 2.5 wants `rules.preset`
+    instead of `rules.recommended` (`biome migrate --write`); npm 11.17 gates dependency
+    install scripts (`allow-scripts`) — esbuild and workerd still work without theirs.
+
 ## Absence claims (inherently T2 — cannot prove a negative)
 
 - **R33.** No product found that combines: user-uploaded songs + stem separation + persistent

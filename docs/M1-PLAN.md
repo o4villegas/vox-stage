@@ -137,3 +137,16 @@ Delivered as one draft PR per the working agreement (single reviewable unit), br
 
 Uploads/R2, queues, RunPod wiring (M2) · profile capture (M3) · any audio playback
 (M4) · scoring (M5) · payments, social, export (out of MVP entirely — ADR-0007).
+
+## 9. Build-time deviations (2026-09-03, recorded as R60)
+
+| Plan said | Built | Why |
+|---|---|---|
+| React 18 + Vite | **React 19.2.8** + Vite 8.2.2 | rule 3 re-verification: 18 ended at 18.3.1; the 2026-08-30 decision was the framework, not the major |
+| `@cloudflare/vitest-pool-workers` | **`@cloudflare/vitest-plugin` 1.1.3** | package renamed by Cloudflare 2026-08-19; same config API; its `fetchMock` is gone → tests stub `globalThis.fetch` |
+| TypeScript (latest) | **5.9.3** | 7.0.2 is the new compiler line; pinned to 5.x until the toolchain is proven on 7 |
+| Deploy from GitHub Actions with `CLOUDFLARE_API_TOKEN` (§4, §6 row 3) | **Cloudflare Workers Builds** on `voxstage-staging`; CI only lints/tests | settled by Lando's action 2026-09-01 (see `docs/STATUS-2026-09-01.md` §6 item 4); no token anywhere |
+| Migrations run in the deploy job | **Applied by hand** (`npm run db:migrate:remote`) | Workers Builds has no migration step; explicit is safer for a single-owner staging DB |
+| — | `"postinstall": "npm run build"` bridge | Workers Builds ignores wrangler custom builds and the Builds API needs a user-scoped token; remove once the dashboard Build command is set |
+| Two D1 databases (staging/prod) | One: `voxstage-staging`; local `wrangler dev` uses it via `remote: true` | owner's rule: one database to manage; tests use an isolated local D1 |
+| Playwright post-deploy E2E (§5) | Manual + curl verification on the preview URL this milestone | Playwright harness deferred to M2 with the upload flow |
