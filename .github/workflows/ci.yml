@@ -1,0 +1,36 @@
+# Lint, type-check, test, and build on every pull request and on main.
+# Deploys are NOT done here: Cloudflare Workers Builds pulls this repo itself
+# (preview versions for branches, `wrangler deploy` for main). See README.md.
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm run build
+      - run: npm test
+      - name: Worker upload dry-run (same command Workers Builds runs, without uploading)
+        run: npx wrangler versions upload --dry-run
+        env:
+          CI: "1"
+          WRANGLER_SEND_METRICS: "false"

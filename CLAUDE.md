@@ -38,8 +38,9 @@ acting.
   instruction — `docs/ARCHITECTURE.md` is the working architecture and ADRs 0001–0008 are
   Accepted.
 - **Phase:** Phase 0 **approved by Lando ("go", 2026-08-28) and in progress.** Spike code
-  lives in `/spikes/` (throwaway — never graduates into the app). **No application code
-  exists**; Phase 1 still needs its own approval, milestone by milestone.
+  lives in `/spikes/` (throwaway — never graduates into the app). **M1 application code now
+  exists on branch `claude/vox-stage-m1` (draft PR #12, 2026-09-03)** — see the M1 bullet
+  below. M2+ still need their own approval, milestone by milestone.
 - **Phase 0 status:** see the table in `spikes/README.md`. S0 CLOSED (audit complete,
   R50) · S1 CLOSED (pass on device; mic processing all-OFF confirmed, R39–R43) · S4
   CLOSED (pass with documented deviation, RTT ≈ 70 ms, R45/R47) · **S3 PASS both halves**
@@ -76,6 +77,58 @@ acting.
   $0.17/hr for R58 (billing lagged at $0 when queried). **Nothing is running** — the pod was
   terminated and verified gone; the leftover `voxstage-s2-spike` endpoint has `workersMax: 0`
   and cannot bill.
+- **Environment audit 2026-09-01 evening (R59, `docs/STATUS-2026-09-01.md`):**
+  `api.cloudflare.com` and `api.resend.com` are **egress-denied** in this sandbox, so
+  `wrangler` cannot deploy from here and the `CLOUDFLARE_API_TOKEN` (a `cfat_` Account
+  API Token) and `RESEND_API_KEY` are present but **unverified**. Working routes: the
+  Cloudflare MCP connector (inventory + D1/KV/R2 create, no deploy), RunPod REST (full),
+  and Lando's machine via the from-desktop bridge (**wrangler OAuth-logged-in with write
+  scopes; Docker Desktop NOT running**). `S3_API_KEY` is the R2 endpoint URL, not a key.
+  The sandbox Docker daemon starts on demand; `DOCKER_API_KEY` is present but unverified.
+  M1's deploy path must be GitHub Actions (+ repo secret), desktop wrangler, or an
+  allowlist change — never assume the sandbox can reach Cloudflare.
+  **2026-09-01 later:** Lando Git-connected the `voxstage-spikes` **Pages** project to the
+  repo (console). One auto-build published the repo tree to the mirror and broke `/s1/`;
+  restored via the bridge. **Automatic deployments on that project must stay OFF.** The
+  recommended M1 deploy path is now Cloudflare **Workers Builds** (Cloudflare pulls from
+  GitHub, `npx wrangler deploy`, no token needed — verified in cloudflare-docs
+  `workers/ci-cd/builds/`), as a *separate* Worker project created when M1 code exists;
+  awaiting Lando's confirmation (see `docs/STATUS-2026-09-01.md` §6 item 4).
+  **20:50 UTC: Lando created the `voxstage-staging` Worker and connected it via Workers
+  Builds** (verified: `workers_list` shows it, created 2026-09-01T20:50:03Z). It builds
+  every push to the repo and posts a check named "Workers Builds: voxstage-staging" on PRs;
+  **that check fails on every commit until M1 code exists** (no `package.json` / wrangler
+  config at repo root — nothing to deploy). Expected, harmless, not a PR defect. Once M1
+  starts, the repo layout in `docs/M1-PLAN.md` §2 must put `wrangler.jsonc` + `package.json`
+  where this project's root directory points (default: repo root).
+- **DECISIONS 2026-09-03 (Lando, in-session, verbatim "option 2, melody grade yes"):**
+  **(1) M1 IS APPROVED** — rule 1 satisfied for M1. Scope: option 2 of
+  `docs/STATUS-2026-09-01.md` §8 — commit the verified skeleton (`wrangler.jsonc` at root,
+  `worker/src/index.ts`, `app/dist/index.html` placeholder) as the opening commit of M1 on
+  branch `claude/vox-stage-m1`, then continue the full M1 build (`docs/M1-PLAN.md`) in the
+  same draft PR. Deploy path = Cloudflare Workers Builds on the existing `voxstage-staging`
+  Worker (no token needed). **(2) S3 gates RATIFIED** (octave-err ≤ 5 %, median ≤ 25 ¢,
+  voicing ≥ 85 %) — **S3 is CLOSED**. Still open: S2 endpoint path (A/B/C), Resend sending
+  domain. **Handoff to a local agent: `docs/HANDOFF-2026-09-03.md`.**
+- **M1 IN PROGRESS — local session 2026-09-03 (R60):** branch `claude/vox-stage-m1`
+  (from PR #11's branch), **draft PR #12**. Commit 1 = the §8 skeleton → the **Workers
+  Builds check went green** (build `27fc48c8`) and preview URLs exist
+  (`https://claude-vox-stage-m1-voxstage-staging.lando555.workers.dev`, branch alias).
+  Commit 2 = the full scaffold: Vite + React 19 app, Hono API with email-OTP auth
+  (`/api/auth/request-code|verify|logout|me`, `/api/hello`), D1 schema **applied to the
+  new `voxstage-staging` database** (`7216c05f-8552-4319-ae20-6e4c66e70c99`), Biome,
+  27 passing tests (workerd + jsdom), GitHub Actions CI (no deploy). **Build-time
+  deviations from the plan (all recorded in `docs/M1-PLAN.md` §9):** React 19.2 not 18;
+  TypeScript pinned 5.9.3 (7.0 is latest); `@cloudflare/vitest-plugin` replaces
+  `vitest-pool-workers`; deploys are Workers Builds not GitHub Actions; a
+  `postinstall` build bridge stands in for the dashboard Build command. **Verified on the branch preview 2026-09-03 (R61): both PR checks green; a full sign-in
+  end-to-end over the API and in a 390-px browser.** **Needs Lando
+  (each ~1 min, dashboard):** (a) Worker → Settings → Build → Build command
+  `npm run build`; (b) Worker → Settings → Variables and Secrets → add secret
+  `RESEND_API_KEY` (the test sender only reaches the Resend account owner's inbox —
+  sign in with that address); (c) merge PR #12 when the phone sign-in is confirmed.
+  `AUTH_DEV_ECHO=1` on staging writes each code to the Worker log (`wrangler tail`) —
+  flip to `0` before external beta users.
 - **Product decisions confirmed by Lando (2026-08-28, T/F interview):** reuse prior
   VoxApp/VoxReport tech ("Rangefinder") for profile capture · accounts-first, no
   anonymous mode · 2-stem separation for MVP · live scoring is launch-blocking ·
@@ -102,15 +155,15 @@ acting.
   contract and the S3 harness + R53–R57 are now on `main`. **One caveat carried forward: R51's "no worker logs exist"
   is wrong** — it holds only for API v1; API v2 streams them (R55), so M2 is NOT forced to
   make the worker self-report through its job output.
-- **Open items awaiting Lando:** **the S2 endpoint deploy** — RunPod's GitHub integration
-  is **console-only** (R55: verified across v1 REST, v2 REST and GraphQL), so no agent can
-  do it; the alternatives are a Docker Hub push as `gvo555` (needs the from-desktop bridge,
-  which was returning 530 on 2026-09-01) or allowlisting `proxy.runpod.net` +
-  `ssh.runpod.io` for the Pod route (R53) · **ratify S3's gate thresholds** (R57 proposes
-  octave-err ≤ 5 %, median ≤ 25 ¢, voicing ≥ 85 %; ROADMAP left them undefined) · the two
-  remaining §6 calls (OTP sending domain, `CLOUDFLARE_API_TOKEN` repo secret) · M1 approval
-  after the Phase 0 exit report.
-  **No longer needed:** allowlisting the RunPod *API* domains, or `zenodo.org` — both done.
+- **Open items awaiting Lando (see `docs/STATUS-2026-09-01.md` §6):** **the S2 endpoint
+  deploy** — three paths: (A) sandbox rebuild + Docker Hub push with `DOCKER_API_KEY` +
+  `PATCH` the existing endpoint via REST v1 (agent-executable if the key is valid and
+  Lando says go); (B) Lando starts Docker Desktop and the bridge builds/pushes; (C) console
+  Import Git Repository (R55, ~5 min) · **ratify S3's gate thresholds** (R57 proposes
+  octave-err ≤ 5 %, median ≤ 25 ¢, voicing ≥ 85 %) · **M1 deploy path** (GitHub Actions +
+  `CLOUDFLARE_API_TOKEN` repo secret recommended) · OTP sending domain · M1 approval after
+  the Phase 0 exit report. **No longer needed:** allowlisting the RunPod *API* domains, or
+  `zenodo.org` — both done.
 - **Sessions:** do NOT spawn sibling sessions via the API — the environment's setup
   script fails them on arrival ("Setup script failed", non-recoverable, verified twice
   2026-08-29). This session owns Phase 0 follow-ups, PR watching, and the exit report.

@@ -670,6 +670,171 @@ the cited pages.
     matching R9's secondary sourcing exactly (Pod tiers are cheaper: A4000 $0.17 community /
     $0.25 secure).
 
+- **R59.** Environment + account re-audit (2026-09-01, evening, fresh container; full
+  write-up in `docs/STATUS-2026-09-01.md`).
+  - **Egress: `api.cloudflare.com` and `api.resend.com` are BOTH policy-denied** (proxy
+    status: `connect_rejected — gateway answered 403 to CONNECT`, 7/7 attempts each), as
+    are `dash.cloudflare.com`, `*.workers.dev`, `*.pages.dev` and `o4villegas.github.io`.
+    So `wrangler` cannot deploy from the sandbox and neither the Cloudflare token nor the
+    Resend key can be verified here. **Reachable:** `<acct>.r2.cloudflarestorage.com`
+    (400 unauth), all RunPod API hosts (authenticated), npm, Docker Hub, `registry-1`,
+    `raw.githubusercontent.com`.
+  - **The Cloudflare MCP connector works independently of the token** (own OAuth): listed
+    21 Workers, 20 R2 buckets, 22 D1 DBs; no `voxstage*` resource exists. It has D1/KV/R2
+    create tools but **no Workers deploy tool**.
+  - **Credentials present, shapes only:** `CLOUDFLARE_API_TOKEN` = `cfat_`+48, the
+    documented *Account API Token* scannable format (cloudflare-docs
+    `fundamentals/api/get-started/token-formats.mdx`: `cfat_[40 characters][checksum]`) —
+    scopes **unverified**; `RESEND_API_KEY` = `re_`+33, unverified; `DOCKER_API_KEY`
+    present, unverified (login test blocked by the permission classifier);
+    `AWS_ACCESS_KEY_ID`/`AWS_SECRET_ACCESS_KEY` present (32/64 chars), unverified (sign
+    test blocked); `CLOUDFLARE_ACCESS_KEY` 32 hex ≠ `AWS_ACCESS_KEY_ID`, purpose unclear;
+    **`S3_API_KEY` is not a key — it is the R2 S3 endpoint URL.** `RUNPOD_API_KEY` verified.
+  - **RunPod:** balance $41.06; `currentSpendPerHr` $0.015 — *[inference]* equals the two
+    network volumes (150 GB × $0.07/GB-mo ≈ $0.0146/hr), not VoxStage; 0 pods;
+    `voxstage-s2-spike` unchanged (`workersMax: 0`). v1 OpenAPI exposes
+    `PATCH /endpoints/{id}` and `PATCH /templates/{id}`, so an agent can retarget the
+    existing endpoint at a registry image without the console. ⚠ Two unrelated endpoints
+    expose an HF token in plain `env` via the API.
+  - **from-desktop bridge is UP** (530 yesterday). On Lando's machine: **Docker is NOT
+    available right now** — `/usr/bin/docker` → `/mnt/wsl/docker-desktop/…` which does not
+    exist, i.e. Docker Desktop is not running (R53's "daemon up" is stale); **wrangler
+    4.86.0 is OAuth-logged-in** with `workers`, `workers_scripts`, `d1`, `queues`, `pages`
+    write scopes — a working deploy path; the only `vox-stage` clone there is stale at
+    PR #6. The bridge's `env` parameter does **not** expand `$VAR` (sent literally).
+  - **Sandbox Docker daemon starts fine** (29.3.1, overlayfs) — the R53 build can be
+    repeated here; a push needs a valid `DOCKER_API_KEY`.
+  - **Later the same evening — Pages Git connection + wrangler-over-bridge facts.** Lando
+    connected the `voxstage-spikes` Pages project to the repo (console). Its first auto-build
+    (deployment `9da55c5b`, from `67a5313`, blank build config) published the raw repo tree:
+    `/CLAUDE.md` → 200, `/s1/` → 404 (cloudflare-docs `pages/configuration/build-configuration`
+    confirms a blank root directory = repo root). Restored by a direct upload of the staged
+    `site/` from Lando's machine (deployment `52a01043`, `/`, `/s1/`, `/s4/` → 200).
+    **wrangler through the from-desktop bridge is non-TTY, and in that mode `wrangler pages
+    deploy` refuses the OAuth login and demands `CLOUDFLARE_API_TOKEN`** (measured); wrapping
+    the command in `script -q -c "…" /dev/null` gives it a pseudo-TTY and it proceeds on the
+    OAuth token. The bridge's own call ceiling is **60 s regardless of `timeout_ms`**, so a
+    deploy must be backgrounded (`nohup … &`) and its log read on a later call. **Workers
+    Builds** (cloudflare-docs `workers/ci-cd/builds/`) is verified as a token-free deploy
+    path: Cloudflare pulls from GitHub and runs `npx wrangler deploy` on the production
+    branch, `npx wrangler versions upload` on others. Also installed Cloudflare's official
+    Claude Code plugin per `developers.cloudflare.com/agent-setup/prompt.md` (fetched via the
+    bridge; the vendor host is egress-blocked here): 13 skills + 5 MCP server definitions,
+    **user-scoped in this ephemeral container only** — it does not persist across sessions,
+    and its MCP servers need an interactive OAuth this session cannot perform.
+  - **Workers Builds failure cause — MEASURED** (log pasted by Lando, build `0fa40aa8`,
+    2026-09-01T20:57Z, non-production branch): the builder ran `npx wrangler versions upload`
+    (wrangler 4.128.0) and failed with **`✘ [ERROR] Missing entry-point to Worker script or
+    to assets directory`** — i.e. no `wrangler.jsonc`/`main`/`assets` in the repo. Not a
+    config error on Cloudflare's side; it resolves itself the moment M1 adds
+    `wrangler.jsonc` + a Worker entry at the project root. Preview builds use
+    `versions upload`, production (`main`) uses `wrangler deploy`, matching the docs.
+
+- **R60.** M1 build-time verifications (2026-09-03 UTC, local WSL session on Lando's
+  machine — it reaches `api.cloudflare.com`, npm, Resend docs; R59's egress wall does not
+  apply here). Sources: npm registry (`npm view`), cloudflare-docs pages named inline,
+  resend.com/docs, and commands run in this session.
+  - **npm versions at pin time:** `hono` 4.13.5 · `wrangler` 4.128.0 (2026-09-01) ·
+    `vitest` 4.1.11 · **`@cloudflare/vitest-plugin` 1.1.3** — the Workers Vitest
+    integration was **renamed** from `@cloudflare/vitest-pool-workers` (cloudflare-docs
+    changelog 2026-08-19; the old name still publishes, 0.22.0) · `@biomejs/biome` 2.5.11 ·
+    **`react` 19.2.8** (the React 18 line ends at 18.3.1; the 2026-08-30 "React 18 + Vite"
+    decision is taken as "React + Vite", major re-verified per rule 3) · `vite` 8.2.2
+    (`@vitejs/plugin-react` 6.1.1 requires vite ^8) · **`typescript` latest is 7.0.2**
+    (the new compiler line) — pinned **5.9.3** for ecosystem safety · `@types/node` 22.20.1.
+    Peer ranges checked: vitest-plugin needs vitest ^4.1; vitest supports vite ^6–^8.
+  - **Workers Builds** (`workers/ci-cd/builds/configuration/`, `build-image/`,
+    `api-reference/`): "Currently, Workers Builds does **not** honor the configurations
+    set in Custom Builds within your Wrangler configuration file" — the Build command is a
+    dashboard/API setting; dependencies are installed automatically (opt out with
+    `SKIP_DEPENDENCY_INSTALL`); build image Node default **24.18.0**, **22.23.2
+    preinstalled**, overridable via `NODE_VERSION`, `.nvmrc` or `.node-version`; default
+    deploy commands `npx wrangler deploy` (production branch) and `npx wrangler versions
+    upload` (other branches), and "Workers Builds will use the Wrangler version set in
+    your package.json". The **Builds API requires a user-scoped token** with "Workers
+    Builds Configuration: Edit" (+ "Workers Scripts: Read"); account tokens "are not
+    supported". **Measured:** wrangler's OAuth token → `GET /workers/scripts` 200 (the
+    `voxstage-staging` tag is `652ed635955f466182fee9b7e2d76f5b`) but
+    `GET /builds/workers/{tag}/triggers` → **403 `Authentication error` (code 10000)**, so
+    no agent on this machine can set the Build command; Lando must (dashboard, ~1 min).
+    Interim: `"postinstall": "npm run build"` in package.json builds `app/dist` during the
+    automatic install.
+  - **Preview URLs** (`workers/versions-and-deployments/preview-urls/`): `preview_urls`
+    config key (wrangler ≥ 3.91); on wrangler ≥ 4.44 it defaults to the `workers_dev`
+    setting; Workers Builds posts a **branch alias** `<branch>-<worker>.<subdomain>.workers.dev`
+    plus a per-commit URL as a PR comment. **Measured:** skeleton commit `2f8dda4` → build
+    `27fc48c8` **success** (started 2026-09-03T00:53:55Z; the first green check on this
+    repo) → `https://claude-vox-stage-m1-voxstage-staging.lando555.workers.dev/` 200
+    text/html and `/api/ping` → `{"ok":true,"service":"voxstage-staging",…}`. The
+    §8 skeleton dry-run reproduced locally: exit 0, `Total Upload: 0.36 KiB`.
+  - **Static assets** (`workers/static-assets/routing/single-page-application/`):
+    `run_worker_first` accepts an array of patterns (wrangler ≥ 4.20), paired with
+    `not_found_handling: "single-page-application"` — used as `["/api/*"]`.
+  - **Remote bindings** (`workers/local-development/#remote-bindings`, GA 2025-09-16):
+    `"remote": true` on a D1 binding makes `wrangler dev` proxy to the deployed database
+    while code runs locally; supported by wrangler, the Vite plugin and the Vitest plugin
+    (`remoteBindings` option — set **false** in `vitest.config.ts` so tests stay isolated).
+  - **Vitest plugin v1 API** (`…/migrate-from-vitest-3-to-vitest-4/`, `…/test-apis/`):
+    `fetchMock` from `cloudflare:test` is **removed** ("Mock `globalThis.fetch` directly
+    or use … MSW"); `env`/`SELF` from `cloudflare:test` are deprecated in favour of
+    `import { env, exports } from "cloudflare:workers"` with `exports.default.fetch()`
+    ("runs in the same isolate/context as tests so any global mocks will apply");
+    storage isolation is per test file. Verified by the passing suite: 27/27.
+  - **D1:** `voxstage-staging` created 2026-09-03T00:55:51Z, id
+    `7216c05f-8552-4319-ae20-6e4c66e70c99`, region ENAM; `0001_init.sql` applied
+    `--remote` (7 statements; tables users, otp_codes, sessions, rate_limits + d1_migrations).
+  - **Resend** (`resend.com/docs/knowledge-base/403-error-resend-dev-domain`,
+    `…/api-reference/emails/send-email`): with the test sender `onboarding@resend.dev`
+    "You can only send testing emails to your own email address" — a 403 otherwise; to
+    reach anyone else, verify a domain and use it in `from`. API: `POST
+    https://api.resend.com/emails`, `Authorization: Bearer`, body `from`/`to`/`subject`/
+    `html`/`text`, success `{"id": …}`. So the M1 phone test can run on the test sender
+    **only if Lando signs in with the email that owns the Resend account**.
+  - **This machine:** none of the cloud-session secrets exist as env vars here
+    (`CLOUDFLARE_API_TOKEN`, `RESEND_API_KEY`, `RUNPOD_API_KEY`, `DOCKER_API_KEY`, AWS keys
+    all absent); `gh` is logged in as o4villegas (`repo` scope) and HTTPS push works;
+    `wrangler` is OAuth-logged-in with `workers`, `d1`, `queues`, `pages` write; Node
+    22.21.1; the Docker CLI is not installed in this WSL distro (Docker Desktop
+    integration off). `wrangler versions upload --dry-run` also passes with **no**
+    Cloudflare credentials (HOME pointed at an empty dir) — so the CI dry-run step is safe.
+  - Traps met: a `.d.ts` beside a same-named `.ts` (`env.d.ts` next to `env.ts`) is
+    silently ignored by tsc (renamed to `bindings.d.ts`); Biome 2.5 wants `rules.preset`
+    instead of `rules.recommended` (`biome migrate --write`); npm 11.17 gates dependency
+    install scripts (`allow-scripts`) — esbuild and workerd still work without theirs.
+
+- **R61.** M1 deployed-preview verification (2026-09-03 01:19–01:28 UTC; measured on the
+  `claude/vox-stage-m1` branch preview, draft PR #12).
+  - **Pipeline:** scaffold commit `307b163` (+ docs `eec3875`) → Workers Builds build
+    `94efb359` **success** (the `postinstall` bridge built `app/dist` inside Workers Builds:
+    the preview serves `/assets/index-DOaoZuKI.js`, the same hash as the local build) →
+    branch alias `https://claude-vox-stage-m1-voxstage-staging.lando555.workers.dev`.
+    GitHub Actions `ci` run `33703163535` **success in 31 s** (lint, typecheck, build,
+    27 tests, upload dry-run — the dry-run needs no Cloudflare credentials, R60).
+  - **API round-trip on the preview (curl):** `/` = the built React app; `/api/health` 200
+    `{"ok":true,"service":"VoxStage"}`; `/api/auth/me` 401; `POST /api/auth/request-code`
+    202 `{"ok":true,"delivery":"log"}` (no `RESEND_API_KEY` on staging yet); `POST
+    /api/auth/verify` 200 `{user}` with `Set-Cookie: vox_session=…; Max-Age=2592000;
+    Path=/; HttpOnly; Secure; SameSite=Lax`; `/api/hello` 200 "Hello, …"; wrong code 401
+    `invalid_code`; logout 204; `/api/hello` 401 afterwards. Staging D1 afterwards: users 1,
+    sessions 0, otp_codes 0 (code consumed, session deleted). Test rows removed after.
+  - **Browser round-trip (Playwright, 390×844):** email → "Enter the code." → code →
+    "Hello, e2e-browser." with the status line "Signed-in connection to the server:
+    working" (the browser's own cookie-authenticated call to `/api/hello`) → Sign out →
+    sign-in screen. Screenshots kept in the session scratchpad, not the repo. One layout
+    defect found and fixed in the same session: the step blurbs on the home card wrapped
+    one word per line (third grid child fell into the 30 px number column; `grid-column: 2`).
+  - **Reading a staging code:** `wrangler tail voxstage-staging --format json`
+    (non-interactive) captured **0 events** for the preview URL *and* for the deployed URL
+    in 25–30 s windows, with and without `--version-id` — cause undetermined; the
+    dashboard's Workers Logs tab (observability on) is untested. What works, with DB admin
+    access only: read `salt` + `code_hash` from `otp_codes` and check the ≤ 1,000,000
+    candidates offline (Node: 156,831 SHA-256 hashes in 125 ms). That number is the
+    reason M1-PLAN §3 calls the 5-attempt lockout and rate limits, not the hash, the real
+    defense — verified, not assumed.
+  - Cosmetic: the signed-out session probe logs a 401 "Failed to load resource" line in
+    the browser console (expected); Chromium's `apple-mobile-web-app-capable` deprecation
+    warning is addressed by also emitting `mobile-web-app-capable`.
+
 ## Absence claims (inherently T2 — cannot prove a negative)
 
 - **R33.** No product found that combines: user-uploaded songs + stem separation + persistent

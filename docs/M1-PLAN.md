@@ -121,7 +121,7 @@ installation for scale"), verdict: defer, revisit at defined triggers.**
 |---|---|---|
 | 1 | Frontend framework | **DECIDED: React 18 + Vite** — call delegated with a top-tier quality mandate (see §1) |
 | 2 | Email provider + sending domain | **Provider DECIDED: Resend**; OAuth-at-scale evaluated → defer (see §3). **Sending domain still OPEN** |
-| 3 | `CLOUDFLARE_API_TOKEN` repo secret | **OPEN** — Lando provisions at build time, scoped to Workers+D1 |
+| 3 | Deploy path / `CLOUDFLARE_API_TOKEN` repo secret | **DECIDED 2026-09-01 ("lets do github" — Lando, superseding a "my computer" answer minutes earlier): GitHub Actions deploys on push to `main`, exactly as §4 specifies. Needs the `CLOUDFLARE_API_TOKEN` added as a GitHub repository secret by Lando (agent cannot set secrets), scoped to Workers Scripts:Edit + D1:Edit (M2 adds R2 + Queues). Token scopes are unverified (R59) — confirm in the Cloudflare dashboard before the first deploy** |
 | 4 | Worker/app naming | **DECIDED: `voxstage` + `voxstage-staging`** |
 | 5 | Lint/format | **DECIDED: Biome** |
 | 6 | M1 approval itself | **OPEN** — after the Phase 0 exit report (S2 pending) |
@@ -137,3 +137,16 @@ Delivered as one draft PR per the working agreement (single reviewable unit), br
 
 Uploads/R2, queues, RunPod wiring (M2) · profile capture (M3) · any audio playback
 (M4) · scoring (M5) · payments, social, export (out of MVP entirely — ADR-0007).
+
+## 9. Build-time deviations (2026-09-03, recorded as R60)
+
+| Plan said | Built | Why |
+|---|---|---|
+| React 18 + Vite | **React 19.2.8** + Vite 8.2.2 | rule 3 re-verification: 18 ended at 18.3.1; the 2026-08-30 decision was the framework, not the major |
+| `@cloudflare/vitest-pool-workers` | **`@cloudflare/vitest-plugin` 1.1.3** | package renamed by Cloudflare 2026-08-19; same config API; its `fetchMock` is gone → tests stub `globalThis.fetch` |
+| TypeScript (latest) | **5.9.3** | 7.0.2 is the new compiler line; pinned to 5.x until the toolchain is proven on 7 |
+| Deploy from GitHub Actions with `CLOUDFLARE_API_TOKEN` (§4, §6 row 3) | **Cloudflare Workers Builds** on `voxstage-staging`; CI only lints/tests | settled by Lando's action 2026-09-01 (see `docs/STATUS-2026-09-01.md` §6 item 4); no token anywhere |
+| Migrations run in the deploy job | **Applied by hand** (`npm run db:migrate:remote`) | Workers Builds has no migration step; explicit is safer for a single-owner staging DB |
+| — | `"postinstall": "npm run build"` bridge | Workers Builds ignores wrangler custom builds and the Builds API needs a user-scoped token; remove once the dashboard Build command is set |
+| Two D1 databases (staging/prod) | One: `voxstage-staging`; local `wrangler dev` uses it via `remote: true` | owner's rule: one database to manage; tests use an isolated local D1 |
+| Playwright post-deploy E2E (§5) | Manual + curl verification on the preview URL this milestone | Playwright harness deferred to M2 with the upload flow |
