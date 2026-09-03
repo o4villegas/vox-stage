@@ -100,6 +100,15 @@ acting.
   config at repo root — nothing to deploy). Expected, harmless, not a PR defect. Once M1
   starts, the repo layout in `docs/M1-PLAN.md` §2 must put `wrangler.jsonc` + `package.json`
   where this project's root directory points (default: repo root).
+- **DECISIONS 2026-09-03 (Lando, in-session, verbatim "option 2, melody grade yes"):**
+  **(1) M1 IS APPROVED** — rule 1 satisfied for M1. Scope: option 2 of
+  `docs/STATUS-2026-09-01.md` §8 — commit the verified skeleton (`wrangler.jsonc` at root,
+  `worker/src/index.ts`, `app/dist/index.html` placeholder) as the opening commit of M1 on
+  branch `claude/vox-stage-m1`, then continue the full M1 build (`docs/M1-PLAN.md`) in the
+  same draft PR. Deploy path = Cloudflare Workers Builds on the existing `voxstage-staging`
+  Worker (no token needed). **(2) S3 gates RATIFIED** (octave-err ≤ 5 %, median ≤ 25 ¢,
+  voicing ≥ 85 %) — **S3 is CLOSED**. Still open: S2 endpoint path (A/B/C), Resend sending
+  domain. **Handoff to a local agent: `docs/HANDOFF-2026-09-03.md`.**
 - **Product decisions confirmed by Lando (2026-08-28, T/F interview):** reuse prior
   VoxApp/VoxReport tech ("Rangefinder") for profile capture · accounts-first, no
   anonymous mode · 2-stem separation for MVP · live scoring is launch-blocking ·
