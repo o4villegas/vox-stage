@@ -802,6 +802,39 @@ the cited pages.
     instead of `rules.recommended` (`biome migrate --write`); npm 11.17 gates dependency
     install scripts (`allow-scripts`) — esbuild and workerd still work without theirs.
 
+- **R61.** M1 deployed-preview verification (2026-09-03 01:19–01:28 UTC; measured on the
+  `claude/vox-stage-m1` branch preview, draft PR #12).
+  - **Pipeline:** scaffold commit `307b163` (+ docs `eec3875`) → Workers Builds build
+    `94efb359` **success** (the `postinstall` bridge built `app/dist` inside Workers Builds:
+    the preview serves `/assets/index-DOaoZuKI.js`, the same hash as the local build) →
+    branch alias `https://claude-vox-stage-m1-voxstage-staging.lando555.workers.dev`.
+    GitHub Actions `ci` run `33703163535` **success in 31 s** (lint, typecheck, build,
+    27 tests, upload dry-run — the dry-run needs no Cloudflare credentials, R60).
+  - **API round-trip on the preview (curl):** `/` = the built React app; `/api/health` 200
+    `{"ok":true,"service":"VoxStage"}`; `/api/auth/me` 401; `POST /api/auth/request-code`
+    202 `{"ok":true,"delivery":"log"}` (no `RESEND_API_KEY` on staging yet); `POST
+    /api/auth/verify` 200 `{user}` with `Set-Cookie: vox_session=…; Max-Age=2592000;
+    Path=/; HttpOnly; Secure; SameSite=Lax`; `/api/hello` 200 "Hello, …"; wrong code 401
+    `invalid_code`; logout 204; `/api/hello` 401 afterwards. Staging D1 afterwards: users 1,
+    sessions 0, otp_codes 0 (code consumed, session deleted). Test rows removed after.
+  - **Browser round-trip (Playwright, 390×844):** email → "Enter the code." → code →
+    "Hello, e2e-browser." with the status line "Signed-in connection to the server:
+    working" (the browser's own cookie-authenticated call to `/api/hello`) → Sign out →
+    sign-in screen. Screenshots kept in the session scratchpad, not the repo. One layout
+    defect found and fixed in the same session: the step blurbs on the home card wrapped
+    one word per line (third grid child fell into the 30 px number column; `grid-column: 2`).
+  - **Reading a staging code:** `wrangler tail voxstage-staging --format json`
+    (non-interactive) captured **0 events** for the preview URL *and* for the deployed URL
+    in 25–30 s windows, with and without `--version-id` — cause undetermined; the
+    dashboard's Workers Logs tab (observability on) is untested. What works, with DB admin
+    access only: read `salt` + `code_hash` from `otp_codes` and check the ≤ 1,000,000
+    candidates offline (Node: 156,831 SHA-256 hashes in 125 ms). That number is the
+    reason M1-PLAN §3 calls the 5-attempt lockout and rate limits, not the hash, the real
+    defense — verified, not assumed.
+  - Cosmetic: the signed-out session probe logs a 401 "Failed to load resource" line in
+    the browser console (expected); Chromium's `apple-mobile-web-app-capable` deprecation
+    warning is addressed by also emitting `mobile-web-app-capable`.
+
 ## Absence claims (inherently T2 — cannot prove a negative)
 
 - **R33.** No product found that combines: user-uploaded songs + stem separation + persistent

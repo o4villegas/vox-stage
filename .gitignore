@@ -7,3 +7,4 @@ app/dist/
 worker-configuration.d.ts
 coverage/
 *.tsbuildinfo
+.playwright-mcp/

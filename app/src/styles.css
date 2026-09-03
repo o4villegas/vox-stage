@@ -414,11 +414,13 @@ body {
 
 .roadmap span {
   display: block;
+  grid-column: 2;
   font-weight: 600;
 }
 
 .roadmap small {
   display: block;
+  grid-column: 2;
   margin-top: 2px;
   color: var(--cream-70);
   font-size: 13px;

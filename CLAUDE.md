@@ -121,7 +121,8 @@ acting.
   deviations from the plan (all recorded in `docs/M1-PLAN.md` §9):** React 19.2 not 18;
   TypeScript pinned 5.9.3 (7.0 is latest); `@cloudflare/vitest-plugin` replaces
   `vitest-pool-workers`; deploys are Workers Builds not GitHub Actions; a
-  `postinstall` build bridge stands in for the dashboard Build command. **Needs Lando
+  `postinstall` build bridge stands in for the dashboard Build command. **Verified on the branch preview 2026-09-03 (R61): both PR checks green; a full sign-in
+  end-to-end over the API and in a 390-px browser.** **Needs Lando
   (each ~1 min, dashboard):** (a) Worker → Settings → Build → Build command
   `npm run build`; (b) Worker → Settings → Variables and Secrets → add secret
   `RESEND_API_KEY` (the test sender only reaches the Resend account owner's inbox —

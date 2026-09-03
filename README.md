@@ -54,8 +54,10 @@ local copy instead. Tests never touch the remote database.
 - `EMAIL_FROM` (in `wrangler.jsonc`) defaults to Resend's test sender
   `onboarding@resend.dev`, which can only deliver to the Resend account owner's own inbox.
   Verify a sending domain in Resend and change `EMAIL_FROM` before anyone else signs in.
-- `AUTH_DEV_ECHO="1"` (staging only) also writes each code to the Worker log
-  (`npx wrangler tail voxstage-staging`). Set it to `"0"` before external beta users.
+- `AUTH_DEV_ECHO="1"` (staging only) also writes each code to the Worker log — read it in
+  the Cloudflare dashboard under the Worker's **Logs** tab (observability is on). In testing,
+  `wrangler tail` showed nothing for preview-URL traffic (R61). Set the flag to `"0"` before
+  any external beta user.
 
 ## Database migrations
 
