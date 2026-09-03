@@ -121,7 +121,7 @@ installation for scale"), verdict: defer, revisit at defined triggers.**
 |---|---|---|
 | 1 | Frontend framework | **DECIDED: React 18 + Vite** — call delegated with a top-tier quality mandate (see §1) |
 | 2 | Email provider + sending domain | **Provider DECIDED: Resend**; OAuth-at-scale evaluated → defer (see §3). **Sending domain still OPEN** |
-| 3 | `CLOUDFLARE_API_TOKEN` repo secret | **OPEN** — Lando provisions at build time, scoped to Workers+D1 |
+| 3 | Deploy path / `CLOUDFLARE_API_TOKEN` repo secret | **DECIDED 2026-09-01 ("lets do github" — Lando, superseding a "my computer" answer minutes earlier): GitHub Actions deploys on push to `main`, exactly as §4 specifies. Needs the `CLOUDFLARE_API_TOKEN` added as a GitHub repository secret by Lando (agent cannot set secrets), scoped to Workers Scripts:Edit + D1:Edit (M2 adds R2 + Queues). Token scopes are unverified (R59) — confirm in the Cloudflare dashboard before the first deploy** |
 | 4 | Worker/app naming | **DECIDED: `voxstage` + `voxstage-staging`** |
 | 5 | Lint/format | **DECIDED: Biome** |
 | 6 | M1 approval itself | **OPEN** — after the Phase 0 exit report (S2 pending) |
