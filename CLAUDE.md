@@ -45,10 +45,13 @@ acting.
   `therancch.com/apps/vox-stage`; a path-scoped address cannot be a Cloudflare Custom
   Domain (hostname-only) and would have forced SPA-under-subpath rework, so he chose the
   subdomain from an A/B/C. `wrangler.jsonc` now declares it as a `custom_domain` route —
-  Cloudflare creates the DNS record and certificate on the next **`main`** deploy. Zone is
-  Cloudflare-hosted and the hostname was NXDOMAIN before attaching; **account ownership was
-  not API-confirmable** (OAuth token → error 9109), so the deploy is the real test.
-  The `.workers.dev` URL and branch previews keep working alongside it.
+  **LIVE since 2026-09-06 21:06 UTC** (PR #14 → `main` `30bd442`, merged on Lando's
+  permission; deploy ≈45 s). Verified on the new host: HTTPS valid (the zone's existing
+  `*.therancch.com` certificate already covered it, so no issuance wait), `/api/health` ok,
+  SPA fallback ok, and a **full sign-in end-to-end** — verify 200, HttpOnly+Secure host-only
+  cookie, logout 204, then 401. Ownership was never API-confirmable (OAuth token → error
+  9109); the successful deploy settled it. `voxstage-staging.lando555.workers.dev` and the
+  apex `therancch.com` both still 200 — nothing regressed.
 - **Phase 0 status:** see the table in `spikes/README.md`. S0 CLOSED (audit complete,
   R50) · S1 CLOSED (pass on device; mic processing all-OFF confirmed, R39–R43) · S4
   CLOSED (pass with documented deviation, RTT ≈ 70 ms, R45/R47) · **S3 PASS both halves**

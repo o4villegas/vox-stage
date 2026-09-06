@@ -907,6 +907,28 @@ the cited pages.
   - **Config validated locally:** `npm run build` ok and
     `wrangler versions upload --dry-run` exit 0, `Total Upload: 82.64 KiB`, bindings
     unchanged (DB, ASSETS, APP_NAME, AUTH_DEV_ECHO, EMAIL_FROM).
+  - **LIVE AND VERIFIED 2026-09-06 21:06–21:10 UTC.** PR #14 merged to `main` as
+    `30bd442` on Lando's explicit in-session permission ("you have permission to merge");
+    Workers Builds deployed in **≈45 s**, both checks success. Measured immediately after:
+    - DNS record created by Cloudflare — `vox-stage.therancch.com` A → `172.67.197.67`,
+      `104.21.52.83` (1.1.1.1 DoH Status 0, having been NXDOMAIN minutes earlier).
+    - **HTTPS valid** — `curl` `ssl_verify_result 0`, `server: cloudflare`. The zone's
+      existing Google Trust Services certificate already covers it:
+      `subjectAltName = DNS:therancch.com, DNS:*.therancch.com` (valid to 2026-10-22), so
+      no new issuance was needed and there was **no certificate-provisioning delay**.
+    - It is our Worker: `/api/health` → `{"ok":true,"service":"VoxStage"}`; page `<title>`
+      `VoxStage`; `/some/deep/link` → 200 (SPA fallback intact); `/api/auth/me` → 401.
+    - **Full sign-in end-to-end on the new host** (throwaway address, code recovered from
+      `otp_codes` salt+hash offline since `wrangler tail` still captures nothing, R-local):
+      request-code 202 → verify **200** with the user row → cookie
+      **HttpOnly, Secure, host-only on `vox-stage.therancch.com`** → `/api/auth/me` 200 →
+      `/api/hello` 200 → logout **204** → `/api/auth/me` **401**. Throwaway rows then
+      deleted; verified 0 remaining `e2e-%` users, and Lando's real account
+      (`lando555@gmail.com`, created 2026-09-06 19:49 UTC, session to 2026-10-06)
+      untouched.
+    - **Nothing regressed:** `voxstage-staging.lando555.workers.dev` still 200, and the
+      apex `therancch.com` still 200 (its existing site is unaffected — a Custom Domain on
+      a subdomain does not touch the apex).
 
 ## Absence claims (inherently T2 — cannot prove a negative)
 
