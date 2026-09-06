@@ -834,6 +834,42 @@ the cited pages.
   - Cosmetic: the signed-out session probe logs a 401 "Failed to load resource" line in
     the browser console (expected); Chromium's `apple-mobile-web-app-capable` deprecation
     warning is addressed by also emitting `mobile-web-app-capable`.
+- **R62.** M1 **complete and live in production staging** (2026-09-06, measured this
+  session unless tagged).
+  - **Merge:** PR #12 merged to `main` as `94a6614` on Lando's explicit in-session
+    permission ("you merge it. you have my permission"); PR #11 (docs) closed as merged by
+    the same merge. Workers Builds then deployed version `1ce3e73b` to
+    `https://voxstage-staging.lando555.workers.dev`.
+  - **Secret:** before the merge, `wrangler secret list --name voxstage-staging` returned
+    `[]` — Lando's recollection that the Resend key was already stored was wrong (measured,
+    not assumed). `wrangler secret put RESEND_API_KEY` from Lando's machine **failed while
+    the branch preview was the latest uploaded version** (wrangler: the latest version of
+    the Worker "isn't currently deployed"; `versions upload` on a non-production branch
+    leaves an undeployed latest version, and `secret put` refuses to bind to it) and
+    **succeeded after the merge** ("✨ Success! Uploaded secret RESEND_API_KEY"). Verified:
+    `secret list` shows `RESEND_API_KEY`; a "Secret Change" deployment, version
+    `2eee9af1`, at 19:47:09 UTC. Lesson for M2+: store new Worker secrets when `main` is
+    the latest deployed version, or the put is rejected.
+  - **Done-means met (Lando's report, 2026-09-06):** requested a code on his phone, the
+    email arrived via Resend's `onboarding@resend.dev` test sender (only the Resend
+    account owner's inbox is reachable until a sending domain is verified), typed it in,
+    and was signed in — "this worked".
+  - **Follow-up raised by Lando:** a "copy to clipboard" control so the code transfers
+    into the app more easily. Two facts constrain it: (1) email clients strip scripts, so
+    no button in the email can write to the clipboard — the copyable thing has to be the
+    code text itself; (2) the current email renders the digits **space-separated**
+    (`code.split("").join(" ")` in `worker/src/lib/email.ts`), so a long-press on the
+    phone selects one digit instead of the whole code [inference from the markup — not
+    measured on the device]. The app's input already accepts a paste (non-digits are
+    stripped in `onChange`) and carries `autoComplete="one-time-code"`, which iOS 17+
+    Safari uses to autofill codes that arrive in the built-in Mail app (T2: vendor-press
+    coverage of the iOS 17 feature — apple.com is egress-denied here; not verified on
+    Lando's phone). **Lando chose option A ("A", 2026-09-06)** — built in PR #13: the
+    HTML email renders the six digits as one contiguous token (letter-spacing only, plus
+    `user-select: all` as a best-effort single-tap select — honored by some clients,
+    ignored by others [not verified per client]); a test now asserts the code appears
+    contiguous in both the text and HTML bodies, and was shown to fail against the old
+    space-separated markup before the fix.
 
 ## Absence claims (inherently T2 — cannot prove a negative)
 

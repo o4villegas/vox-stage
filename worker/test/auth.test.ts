@@ -52,6 +52,10 @@ describe("request-code", () => {
     expect(email.to).toEqual(["singer@example.com"]);
     expect(email.from).toBe("VoxStage <onboarding@resend.dev>");
     expect(email.code).toMatch(/^\d{6}$/);
+    // The code must appear as one contiguous token in both bodies so a long-press on a
+    // phone selects all six digits at once (no spaces or markup between digits).
+    expect(email.text).toContain(email.code);
+    expect(email.html).toContain(`>${email.code}<`);
   });
 
   it("rate-limits the 4th code for the same email within 15 minutes", async () => {
