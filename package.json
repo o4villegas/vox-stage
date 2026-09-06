@@ -1,0 +1,49 @@
+{
+  "name": "voxstage",
+  "private": true,
+  "version": "0.1.0",
+  "description": "VoxStage — sing any song in the key that fits your voice. M1: scaffolding, CI, deploy pipeline, email-OTP sign-in.",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "concurrently -k -n app,worker -c cyan,magenta \"npm:dev:app\" \"npm:dev:worker\"",
+    "dev:app": "vite --config app/vite.config.ts",
+    "dev:worker": "wrangler dev --port 8787",
+    "build": "vite build --config app/vite.config.ts",
+    "preview": "npm run build && wrangler dev --port 8787",
+    "lint": "biome ci .",
+    "format": "biome format --write .",
+    "typecheck": "wrangler types --strict-vars=false && tsc -p worker/tsconfig.json --noEmit && tsc -p app/tsconfig.json --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "check": "npm run lint && npm run typecheck && npm run build && npm run test && wrangler versions upload --dry-run",
+    "db:migrate:remote": "wrangler d1 migrations apply voxstage-staging --remote",
+    "db:migrate:local": "wrangler d1 migrations apply voxstage-staging --local",
+    "postinstall": "npm run build"
+  },
+  "dependencies": {
+    "hono": "4.13.5",
+    "react": "19.2.8",
+    "react-dom": "19.2.8"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.5.11",
+    "@cloudflare/vitest-plugin": "1.1.3",
+    "@testing-library/dom": "10.4.1",
+    "@testing-library/jest-dom": "7.0.1",
+    "@testing-library/react": "16.3.3",
+    "@testing-library/user-event": "14.6.7",
+    "@types/node": "22.20.1",
+    "@types/react": "19.2.18",
+    "@types/react-dom": "19.2.5",
+    "@vitejs/plugin-react": "6.1.1",
+    "concurrently": "10.0.5",
+    "jsdom": "30.0.1",
+    "typescript": "5.9.3",
+    "vite": "8.2.2",
+    "vitest": "4.1.11",
+    "wrangler": "4.128.0"
+  }
+}

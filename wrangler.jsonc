@@ -1,0 +1,36 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "voxstage-staging",
+  "main": "worker/src/index.ts",
+  "compatibility_date": "2026-08-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": true,
+  "preview_urls": true,
+  "assets": {
+    "directory": "./app/dist",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": ["/api/*"]
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "voxstage-staging",
+      "database_id": "7216c05f-8552-4319-ae20-6e4c66e70c99",
+      "migrations_dir": "worker/migrations",
+      // Local `wrangler dev` talks to the real staging database (one database to manage).
+      // Tests never do: vitest.config.ts sets remoteBindings:false and uses an isolated D1.
+      "remote": true
+    }
+  ],
+  "vars": {
+    "APP_NAME": "VoxStage",
+    // "1" = also write each sign-in code to the Worker log (visible via `wrangler tail`).
+    // Staging-only convenience for M1 testing; set to "0" before any external beta user.
+    "AUTH_DEV_ECHO": "1",
+    // Resend's test sender: can only reach the Resend account owner's own inbox until a
+    // sending domain is verified (docs/RESEARCH.md R60).
+    "EMAIL_FROM": "VoxStage <onboarding@resend.dev>"
+  },
+  "observability": { "enabled": true }
+}
