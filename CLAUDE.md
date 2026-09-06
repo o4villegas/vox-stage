@@ -117,9 +117,10 @@ acting.
   phone with an emailed code. **Still to do before any external tester:** set
   `AUTH_DEV_ECHO` to `0` (codes currently also go to the Worker log) and verify a Resend
   sending domain (the test sender reaches only the Resend account owner's inbox).
-  **Open feature ask (needs Lando's pick + rule-1 go):** easier code transfer from the
-  email into the app — options in R62 (make the code one tap-selectable token in the
-  email; or a sign-in link that skips typing). Build history: Commit 1 = the §8 skeleton → the **Workers
+  **Code-transfer follow-up: Lando chose option A ("A", 2026-09-06) — the email now
+  renders the code as one tap-selectable token (PR #13, `worker/src/lib/email.ts`, with a
+  regression test); option B (sign-in link) was not chosen and needs its own approval if
+  ever wanted.** Build history: Commit 1 = the §8 skeleton → the **Workers
   Builds check went green** (build `27fc48c8`) and preview URLs exist
   (`https://claude-vox-stage-m1-voxstage-staging.lando555.workers.dev`, branch alias).
   Commit 2 = the full scaffold: Vite + React 19 app, Hono API with email-OTP auth
@@ -166,7 +167,7 @@ acting.
   `PATCH` the existing endpoint via REST v1 (agent-executable if the key is valid and
   Lando says go); (B) Lando starts Docker Desktop and the bridge builds/pushes; (C) console
   Import Git Repository (R55, ~5 min) · OTP sending domain · `AUTH_DEV_ECHO=0` before
-  external testers · the code-transfer feature pick (R62) · the Phase 0 exit report (waits
+  external testers · the Phase 0 exit report (waits
   on S2 cold-start) · M2 approval. **Done since this list was written:** S3 gates ratified
   (2026-09-03), M1 deploy path (Workers Builds), M1 approved, built, merged and verified
   (R60–R62). **No longer needed:** allowlisting the RunPod *API* domains, or

@@ -51,12 +51,15 @@ function renderText(appName: string, code: string): string {
 }
 
 function renderHtml(appName: string, code: string): string {
-  const digits = code.split("").join(" ");
+  // The code is rendered as ONE contiguous token: a long-press on a phone then selects
+  // all six digits at once (spaces between digits made it select one digit at a time).
+  // Visual spacing comes from letter-spacing only. `user-select: all` asks clients that
+  // honor it to select the whole token on a single tap; others ignore it harmlessly.
   return [
     '<div style="font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;max-width:420px;margin:0 auto;padding:32px 24px;color:#1a1523">',
     `<p style="margin:0 0 8px;font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:#a2621b">${escapeHtml(appName)}</p>`,
     '<p style="margin:0 0 20px;font-size:17px;line-height:1.5">Here is your sign-in code:</p>',
-    `<p style="margin:0 0 20px;font-size:38px;font-weight:600;letter-spacing:.2em;font-variant-numeric:tabular-nums">${digits}</p>`,
+    `<p style="margin:0 0 20px;font-size:38px;font-weight:600;letter-spacing:.2em;font-variant-numeric:tabular-nums;-webkit-user-select:all;user-select:all">${code}</p>`,
     '<p style="margin:0;font-size:14px;line-height:1.5;color:#5c5566">It works for 10 minutes. If you didn&#39;t ask for it, you can ignore this email.</p>',
     "</div>",
   ].join("");

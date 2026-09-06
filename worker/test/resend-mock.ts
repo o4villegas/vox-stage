@@ -7,6 +7,8 @@ export interface SentEmail {
   from: string;
   to: string[];
   subject: string;
+  text: string;
+  html: string;
   code: string;
 }
 
@@ -33,6 +35,8 @@ export function installResendMock(): void {
         from: string;
         to: string[];
         subject: string;
+        text: string;
+        html: string;
       };
       const email: SentEmail = { ...body, code: /\b(\d{6})\b/.exec(body.subject)?.[1] ?? "" };
       const waiter = waiters.shift();

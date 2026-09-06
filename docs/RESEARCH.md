@@ -864,7 +864,12 @@ the cited pages.
     stripped in `onChange`) and carries `autoComplete="one-time-code"`, which iOS 17+
     Safari uses to autofill codes that arrive in the built-in Mail app (T2: vendor-press
     coverage of the iOS 17 feature — apple.com is egress-denied here; not verified on
-    Lando's phone). No app change made — awaiting Lando's pick (see CLAUDE.md).
+    Lando's phone). **Lando chose option A ("A", 2026-09-06)** — built in PR #13: the
+    HTML email renders the six digits as one contiguous token (letter-spacing only, plus
+    `user-select: all` as a best-effort single-tap select — honored by some clients,
+    ignored by others [not verified per client]); a test now asserts the code appears
+    contiguous in both the text and HTML bodies, and was shown to fail against the old
+    space-separated markup before the fix.
 
 ## Absence claims (inherently T2 — cannot prove a negative)
 
