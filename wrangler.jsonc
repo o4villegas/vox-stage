@@ -6,6 +6,11 @@
   "compatibility_flags": ["nodejs_compat"],
   "workers_dev": true,
   "preview_urls": true,
+  // Public address. `custom_domain: true` makes Cloudflare create the DNS record and
+  // the TLS certificate itself on deploy; no DNS edit and no certificate work by hand.
+  // Only `wrangler deploy` (main) applies this — branch preview builds use
+  // `versions upload`, which does not touch routes. See docs/RESEARCH.md R63.
+  "routes": [{ "pattern": "vox-stage.therancch.com", "custom_domain": true }],
   "assets": {
     "directory": "./app/dist",
     "binding": "ASSETS",

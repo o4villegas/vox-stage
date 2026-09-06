@@ -75,7 +75,14 @@ Cloudflare token.
 
 - Every push to a non-`main` branch → `npx wrangler versions upload` → a **preview URL**
   (posted as a comment on the pull request).
-- Every push to `main` → `npx wrangler deploy` → the live `voxstage-staging` URL.
+- Every push to `main` → `npx wrangler deploy` → the live app at
+  **https://vox-stage.therancch.com** (and the `voxstage-staging.lando555.workers.dev`
+  URL, which keeps working).
+
+**Public address.** `wrangler.jsonc` declares `vox-stage.therancch.com` as a
+`custom_domain` route, so Cloudflare creates the DNS record and manages the TLS
+certificate itself. Only a `main` deploy applies it; branch previews use
+`versions upload`, which does not touch routes.
 
 **Build bridge.** Workers Builds installs dependencies automatically but ignores
 wrangler's custom-build hook, so `package.json` has `"postinstall": "npm run build"` to

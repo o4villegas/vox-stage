@@ -41,6 +41,14 @@ acting.
   lives in `/spikes/` (throwaway — never graduates into the app). **M1 is MERGED and LIVE
   (PR #12 → `main` `94a6614`, 2026-09-06; sign-in verified on Lando's phone, R62)** — see
   the M1 bullet below. M2+ still need their own approval, milestone by milestone.
+- **Public address — `vox-stage.therancch.com` (Lando, 2026-09-06; R63).** He asked for
+  `therancch.com/apps/vox-stage`; a path-scoped address cannot be a Cloudflare Custom
+  Domain (hostname-only) and would have forced SPA-under-subpath rework, so he chose the
+  subdomain from an A/B/C. `wrangler.jsonc` now declares it as a `custom_domain` route —
+  Cloudflare creates the DNS record and certificate on the next **`main`** deploy. Zone is
+  Cloudflare-hosted and the hostname was NXDOMAIN before attaching; **account ownership was
+  not API-confirmable** (OAuth token → error 9109), so the deploy is the real test.
+  The `.workers.dev` URL and branch previews keep working alongside it.
 - **Phase 0 status:** see the table in `spikes/README.md`. S0 CLOSED (audit complete,
   R50) · S1 CLOSED (pass on device; mic processing all-OFF confirmed, R39–R43) · S4
   CLOSED (pass with documented deviation, RTT ≈ 70 ms, R45/R47) · **S3 PASS both halves**

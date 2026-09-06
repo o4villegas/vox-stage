@@ -871,6 +871,43 @@ the cited pages.
     contiguous in both the text and HTML bodies, and was shown to fail against the old
     space-separated markup before the fix.
 
+- **R63.** Public address for the staging Worker — `vox-stage.therancch.com`
+  (decided by Lando 2026-09-06; measured this session unless tagged).
+  - **Decision.** Lando asked for `therancch.com/apps/vox-stage`; presented A/B/C and he
+    chose the **subdomain**. Reason the fork mattered: Cloudflare **Custom Domains are
+    hostname-only** — "An incoming request must exactly match the domain or subdomain your
+    Custom Domain is registered to. Other parts (path, query parameters) of the URL are not
+    considered" (`workers/configuration/routing/custom-domains/`). A path-scoped address is
+    therefore a **route** (`pattern` + `zone_name`), not a Custom Domain, and would have
+    forced app changes: this SPA is built for the site root — no Vite `base`, session cookie
+    at `path: "/"` (`worker/src/lib/cookies.ts:20,26`), client calls to `/api/...`
+    (`app/src/api.ts:42-45`), Worker matching on `startsWith("/api/")`
+    (`worker/src/index.ts:30`), and root-absolute asset links in `app/index.html:13-14`.
+    The subdomain needs **none** of those changes.
+  - **Zone reachable and target free.** `therancch.com` is on Cloudflare nameservers
+    (`owen`/`jill.ns.cloudflare.com`); apex answers **HTTP 200, `server: cloudflare`**
+    (104.21.52.83 / 172.67.197.67). `vox-stage.therancch.com` returns **NXDOMAIN (Status 3)
+    for both A and CNAME** via 1.1.1.1 DNS-over-HTTPS, with the apex A query (Status 0) as
+    the control — so no pre-existing record blocks attachment. Cloudflare refuses a Custom
+    Domain "on a hostname with an existing CNAME DNS record or on a zone you do not own."
+  - **Ownership NOT confirmed by API** — the wrangler OAuth token is rejected by
+    `api.cloudflare.com` (`zones?name=…` → **error 9109 "Invalid access token"**) *despite*
+    listing `zone:read` among its scopes, the same class of refusal R60 recorded for the
+    Builds API. Ownership therefore rests on Lando's statement plus the Cloudflare
+    nameservers; the deploy itself is the real test, and it fails safely (red build, no
+    partial state) if the zone is not in the account.
+  - **Mechanism.** `wrangler.jsonc` now carries
+    `"routes": [{ "pattern": "vox-stage.therancch.com", "custom_domain": true }]`.
+    Cloudflare "will create a new DNS record for you" and manages the certificate — no DNS
+    edit and no cert work by hand. **Only `wrangler deploy` applies it**, so it lands when
+    `main` deploys; branch preview builds run `versions upload`, which does not touch
+    routes (hence the PR check stays green without creating the domain early).
+    `workers_dev` and `preview_urls` are unaffected — the `.workers.dev` URL and branch
+    previews keep working alongside the custom domain.
+  - **Config validated locally:** `npm run build` ok and
+    `wrangler versions upload --dry-run` exit 0, `Total Upload: 82.64 KiB`, bindings
+    unchanged (DB, ASSETS, APP_NAME, AUTH_DEV_ECHO, EMAIL_FROM).
+
 ## Absence claims (inherently T2 — cannot prove a negative)
 
 - **R33.** No product found that combines: user-uploaded songs + stem separation + persistent
