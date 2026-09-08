@@ -1,0 +1,69 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&amp;family=Geist+Mono:wght@100..900&amp;display=swap">
+  <style>
+    body { margin: 0; background: #06080F; color: #F3F5F9; font-family: "Geist", "Helvetica Neue", Arial, sans-serif; -webkit-font-smoothing: antialiased; }
+    a { color: #5B8CFF; } a:hover { color: #8FB0FF; }
+    .mono { font-family: "Geist Mono", "SF Mono", Menlo, monospace; font-variant-numeric: tabular-nums; }
+    .e1 { background: linear-gradient(180deg, #131722 0%, #0D1017 100%); border: 1px solid rgba(255,255,255,0.08); box-shadow: inset 0 1px 0 rgba(255,255,255,0.07), 0 16px 36px -24px rgba(0,0,0,0.95); }
+    .e2 { background: linear-gradient(180deg, #1B2030 0%, #151926 100%); border: 1px solid rgba(255,255,255,0.09); box-shadow: inset 0 1px 0 rgba(255,255,255,0.09), 0 10px 26px -18px rgba(0,0,0,0.95); }
+    .glass { background: rgba(22,26,38,0.62); backdrop-filter: blur(22px) saturate(140%); -webkit-backdrop-filter: blur(22px) saturate(140%); border: 1px solid rgba(255,255,255,0.14); box-shadow: inset 0 1px 0 rgba(255,255,255,0.14), 0 30px 60px -30px rgba(0,0,0,0.95); }
+    .floor { position: absolute; left: -45%; right: -45%; bottom: -160px; height: 460px; pointer-events: none; background-image: linear-gradient(rgba(91,140,255,0.16) 1px, transparent 1px), linear-gradient(90deg, rgba(91,140,255,0.16) 1px, transparent 1px); background-size: 46px 46px; transform: perspective(520px) rotateX(68deg); transform-origin: 50% 0%; -webkit-mask-image: linear-gradient(180deg, rgba(0,0,0,0.85), rgba(0,0,0,0) 80%); mask-image: linear-gradient(180deg, rgba(0,0,0,0.85), rgba(0,0,0,0) 80%); }
+    .beam { position: absolute; left: 50%; top: -80px; width: 560px; height: 700px; transform: translateX(-50%); pointer-events: none; background: conic-gradient(from 0deg at 50% 0%, rgba(255,244,224,0) 42%, rgba(255,244,224,0.08) 46.5%, rgba(255,244,224,0.16) 50%, rgba(255,244,224,0.08) 53.5%, rgba(255,244,224,0) 58%); filter: blur(8px); }
+    .btn-primary { height: 52px; border-radius: 14px; background: linear-gradient(180deg, #7AA2FF 0%, #5B8CFF 55%, #4B7CF0 100%); color: #06080F; font-weight: 600; font-size: 16px; display: flex; align-items: center; justify-content: center; gap: 10px; box-shadow: inset 0 1px 0 rgba(255,255,255,0.45), 0 12px 28px -14px rgba(91,140,255,0.9); }
+    .btn-secondary { height: 52px; border-radius: 14px; background: linear-gradient(180deg, #1F2434 0%, #171B26 100%); color: #F3F5F9; font-weight: 600; font-size: 16px; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(255,255,255,0.10); box-shadow: inset 0 1px 0 rgba(255,255,255,0.10), 0 10px 24px -18px rgba(0,0,0,0.9); }
+    .btn-quiet { height: 44px; border-radius: 14px; color: #AEB5C4; font-weight: 500; font-size: 15px; display: flex; align-items: center; justify-content: center; }
+    .lbl { font-size: 13px; font-weight: 500; letter-spacing: 0.02em; color: #AEB5C4; }
+    .chip { display: inline-flex; align-items: center; gap: 6px; height: 26px; padding: 0 9px; border-radius: 8px; font-size: 12px; font-weight: 600; white-space: nowrap; box-shadow: inset 0 1px 0 rgba(255,255,255,0.10); }
+    .tab { height: 52px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; color: #848CA0; border-radius: 26px; }
+    .tab.on { background: linear-gradient(180deg, rgba(91,140,255,0.22), rgba(91,140,255,0.12)); color: #5B8CFF; box-shadow: inset 0 1px 0 rgba(255,255,255,0.16); }
+    .tabbar { position: absolute; left: 21px; right: 21px; bottom: 21px; height: 64px; border-radius: 32px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); align-items: center; padding: 6px; }
+  </style>
+</helmet>
+<div style="position: relative; width: 390px; height: 844px; overflow: hidden; background: #06080F; display: flex; flex-direction: column; box-sizing: border-box; padding: 54px 20px 30px; gap: 12px;">
+  <div class="floor" style="opacity: 0.7;"></div>
+  <div style="display: flex; align-items: center; justify-content: space-between; position: relative;">
+    <div style="display: flex; align-items: center; gap: 6px;"><div style="width: 44px; height: 44px; margin-left: -12px; display: flex; align-items: center; justify-content: center;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#AEB5C4" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"></path></svg></div><span class="lbl">OPEN MIC · THURSDAY</span></div>
+    <div style="width: 44px; height: 44px; margin-right: -12px; display: flex; align-items: center; justify-content: center;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#AEB5C4" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="5" r="1"></circle><circle cx="12" cy="12" r="1"></circle><circle cx="12" cy="19" r="1"></circle></svg></div>
+  </div>
+  <div style="display: flex; flex-direction: column; gap: 4px; position: relative;">
+    <h1 style="margin: 0; font-size: 34px; line-height: 38px; font-weight: 600; letter-spacing: -0.03em;">Valerie</h1>
+    <div style="font-size: 14px; color: #AEB5C4;">Your upload · 3:54 · vocal and band separated</div>
+  </div>
+  <div class="e1" style="border-radius: 22px; padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; position: relative;">
+    <div style="display: flex; justify-content: space-between; align-items: baseline;"><span style="font-size: 16px; font-weight: 600; letter-spacing: -0.01em;">Where the melody sits</span><span class="mono" style="font-size: 12px; color: #4FD1A0;">fits at &#8722;3</span></div>
+    <div style="position: relative; height: 90px;">
+      <div style="position: absolute; left: 0; right: 0; top: 14px; height: 1px; background: rgba(255,255,255,0.10);"></div>
+      <div style="position: absolute; left: 0; right: 0; top: 54px; height: 1px; background: rgba(255,255,255,0.10);"></div>
+      <div class="mono" style="position: absolute; left: 0; top: 0; width: 100%; display: flex; justify-content: space-between;"><span style="font-size: 10px; color: #848CA0;">E2</span><span style="font-size: 10px; color: #848CA0;">A2</span><span style="font-size: 10px; color: #848CA0;">D3</span><span style="font-size: 10px; color: #848CA0;">G3</span><span style="font-size: 10px; color: #848CA0;">C4</span><span style="font-size: 10px; color: #848CA0;">F4</span><span style="font-size: 10px; color: #848CA0;">A4</span><span style="font-size: 10px; color: #848CA0;">D5</span></div>
+      <div style="position: absolute; left: 18%; width: 52%; top: 22px; height: 14px; border-radius: 7px; background: rgba(91,140,255,0.18); border: 1px solid rgba(91,140,255,0.55);"></div>
+      <div style="position: absolute; left: 30%; width: 30%; top: 22px; height: 14px; border-radius: 7px; background: linear-gradient(180deg, #8FB0FF, #4B7CF0); box-shadow: inset 0 1px 0 rgba(255,255,255,0.5), 0 6px 14px -6px rgba(91,140,255,0.9);"></div>
+      <div style="position: absolute; left: 44%; width: 40%; top: 62px; height: 14px; border-radius: 7px; background: rgba(255,244,224,0.12); border: 1px dashed rgba(255,244,224,0.5);"></div>
+      <div style="position: absolute; left: 30%; width: 40%; top: 62px; height: 14px; border-radius: 7px; background: linear-gradient(180deg, #FFFFFF, #E9E2D2); box-shadow: inset 0 1px 0 rgba(255,255,255,0.9), 0 6px 16px -6px rgba(255,244,224,0.9);"></div>
+      <svg style="position: absolute; left: 41%; top: 44px;" width="30" height="16" viewBox="0 0 30 16" fill="none" stroke="#4FD1A0" stroke-width="1.6" stroke-linecap="round"><path d="M28 2 L4 14 M10 14 L4 14 L5 8"></path></svg>
+    </div>
+    <div style="display: flex; gap: 14px; font-size: 12px; color: #AEB5C4; flex-wrap: wrap;"><span style="display: inline-flex; gap: 6px; align-items: center;"><span style="width: 10px; height: 10px; border-radius: 3px; background: #5B8CFF;"></span>Your comfortable range</span><span style="display: inline-flex; gap: 6px; align-items: center;"><span style="width: 10px; height: 10px; border-radius: 3px; background: rgba(255,244,224,0.9);"></span>Melody, moved &#8722;3</span><span style="display: inline-flex; gap: 6px; align-items: center;"><span style="width: 10px; height: 10px; border-radius: 3px; border: 1px dashed rgba(255,244,224,0.6);"></span>Original</span></div>
+  </div>
+  <div class="e1" style="border-radius: 22px; padding: 14px 16px; display: flex; flex-direction: column; gap: 8px; position: relative;">
+    <div style="display: flex; justify-content: space-between; align-items: baseline;"><span style="font-size: 16px; font-weight: 600; letter-spacing: -0.01em;">Key</span><span class="mono" style="font-size: 14px;"><span style="color: #848CA0;">D</span> &#8594; <span style="font-weight: 600;">B</span> <span style="color: #4FD1A0;">&#8722;3</span></span></div>
+    <div style="position: relative; height: 44px; display: flex; align-items: center;"><div style="position: absolute; left: 0; right: 0; height: 10px; border-radius: 5px; background: #0B0E15; box-shadow: inset 0 2px 5px rgba(0,0,0,0.7);"></div><div style="position: absolute; left: 0; right: 0; height: 10px; background: repeating-linear-gradient(90deg, rgba(255,255,255,0.28) 0 2px, transparent 2px 12.5%);"></div><div style="position: absolute; left: 12.5%; width: 2px; height: 22px; background: #4FD1A0; border-radius: 1px; box-shadow: 0 0 8px rgba(79,209,160,0.8);"></div><div style="position: absolute; left: calc(12.5% - 16px); width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(180deg, #FFFFFF, #D9DDE6); box-shadow: inset 0 -2px 3px rgba(0,0,0,0.25), 0 6px 14px rgba(0,0,0,0.6), 0 0 0 6px rgba(91,140,255,0.22);"></div></div>
+    <div style="display: flex; justify-content: space-between; font-size: 12px; color: #848CA0;"><span class="mono">&#8722;4</span><span style="color: #4FD1A0;">Recommended</span><span class="mono">+4</span></div>
+  </div>
+  <div class="e1" style="border-radius: 22px; padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; position: relative;">
+    <div style="font-size: 16px; font-weight: 600; letter-spacing: -0.01em;">Mix</div>
+    <div style="display: flex; flex-direction: column; gap: 6px;"><div style="display: flex; justify-content: space-between; font-size: 13px; color: #AEB5C4;"><span>Vocal guide</span><span class="mono">&#8722;18 dB</span></div><div style="position: relative; height: 32px; display: flex; align-items: center;"><div style="position: absolute; left: 0; right: 0; height: 6px; border-radius: 3px; background: #0B0E15; box-shadow: inset 0 1px 3px rgba(0,0,0,0.7);"></div><div style="position: absolute; left: 0; width: 28%; height: 6px; border-radius: 3px; background: linear-gradient(180deg, #FFFFFF, #D9DDE6);"></div><div style="position: absolute; left: calc(28% - 14px); width: 28px; height: 28px; border-radius: 50%; background: linear-gradient(180deg, #FFFFFF, #D9DDE6); box-shadow: inset 0 -2px 3px rgba(0,0,0,0.25), 0 4px 10px rgba(0,0,0,0.6);"></div></div></div>
+    <div style="display: flex; flex-direction: column; gap: 6px;"><div style="display: flex; justify-content: space-between; font-size: 13px; color: #AEB5C4;"><span>Band</span><span class="mono">0 dB</span></div><div style="position: relative; height: 32px; display: flex; align-items: center;"><div style="position: absolute; left: 0; right: 0; height: 6px; border-radius: 3px; background: #0B0E15; box-shadow: inset 0 1px 3px rgba(0,0,0,0.7);"></div><div style="position: absolute; left: 0; width: 80%; height: 6px; border-radius: 3px; background: linear-gradient(180deg, #FFFFFF, #D9DDE6);"></div><div style="position: absolute; left: calc(80% - 14px); width: 28px; height: 28px; border-radius: 50%; background: linear-gradient(180deg, #FFFFFF, #D9DDE6); box-shadow: inset 0 -2px 3px rgba(0,0,0,0.25), 0 4px 10px rgba(0,0,0,0.6);"></div></div></div>
+  </div>
+  <div style="flex: 1 1 auto;"></div>
+  <div class="btn-primary" style="height: 56px; font-size: 17px; position: relative;"><svg width="18" height="18" viewBox="0 0 24 24" fill="#06080F"><path d="M7 5l12 7-12 7z"></path></svg>Rehearse in B</div>
+</div>
+</x-dc>
+</body>
+</html>

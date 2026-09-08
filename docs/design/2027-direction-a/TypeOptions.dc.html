@@ -1,0 +1,57 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&amp;family=Geist+Mono:wght@100..900&amp;family=Mona+Sans:wdth,wght@75..125,200..900&amp;family=Funnel+Display:wght@300..800&amp;family=Funnel+Sans:wght@300..800&amp;display=swap">
+  <style>
+    body { margin: 0; background: #06080F; color: #F3F5F9; font-family: "Geist", "Helvetica Neue", Arial, sans-serif; -webkit-font-smoothing: antialiased; }
+    a { color: #5B8CFF; } a:hover { color: #8FB0FF; }
+    .mono { font-family: "Geist Mono", "SF Mono", Menlo, monospace; font-variant-numeric: tabular-nums; }
+    .col { background: linear-gradient(180deg, #131722 0%, #0D1017 100%); border: 1px solid rgba(255,255,255,0.08); box-shadow: inset 0 1px 0 rgba(255,255,255,0.07), 0 16px 36px -24px rgba(0,0,0,0.95); border-radius: 22px; padding: 22px; display: flex; flex-direction: column; gap: 14px; }
+    .k { font-size: 12px; text-transform: uppercase; letter-spacing: 0.14em; color: #848CA0; font-weight: 500; }
+    .why { font-size: 12.5px; line-height: 1.5; color: #AEB5C4; margin: 0; }
+  </style>
+</helmet>
+<div style="width: 900px; height: 700px; box-sizing: border-box; padding: 28px; background: #06080F; display: flex; flex-direction: column; gap: 18px;">
+  <div style="display: flex; align-items: baseline; justify-content: space-between;"><div style="font-size: 22px; font-weight: 600; letter-spacing: -0.03em;">Type options · same words, three pairings</div><div class="mono" style="font-size: 12px; color: #848CA0;">readouts always Geist Mono</div></div>
+  <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; flex: 1 1 auto;">
+    <div class="col" style="border-color: #5B8CFF; box-shadow: inset 0 1px 0 rgba(255,255,255,0.07), 0 0 0 4px rgba(91,140,255,0.16), 0 16px 36px -24px rgba(0,0,0,0.95);">
+      <div style="display: flex; justify-content: space-between; align-items: center;"><span class="k">A · Geist</span><span style="font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #5B8CFF; background: rgba(91,140,255,0.14); border-radius: 8px; padding: 4px 8px;">Recommended</span></div>
+      <div style="font-family: 'Geist', sans-serif; font-size: 34px; line-height: 36px; font-weight: 600; letter-spacing: -0.035em;">Sing everything in your key.</div>
+      <div style="font-family: 'Geist', sans-serif; font-size: 20px; line-height: 24px; font-weight: 600; letter-spacing: -0.02em;">Open mic · Thursday</div>
+      <div style="font-family: 'Geist', sans-serif; font-size: 14px; line-height: 21px; color: #AEB5C4;">Find your range once. Every song you upload is moved to fit it, and you see exactly how close you sing.</div>
+      <div style="font-family: 'Geist', sans-serif; font-size: 12px; letter-spacing: 0.02em; font-weight: 500; color: #AEB5C4;">YOUR KEY · COMFORTABLE RANGE</div>
+      <div class="mono" style="display: flex; gap: 14px; align-items: baseline;"><span style="font-size: 52px; line-height: 1; font-weight: 500; letter-spacing: -0.05em;">94</span><span style="font-size: 20px;">A4</span><span style="font-size: 14px; color: #AEB5C4;">+6&#162;</span></div>
+      <p class="why"><span style="color: #F3F5F9;">Why:</span> the most current neo-grotesque on the list, even rhythm, crisp at 13 px, confident at 120 px, and its mono is the same family, so numbers and words share one voice.</p>
+      <p class="why"><span style="color: #F3F5F9;">Trade-off:</span> widely used in software, so it is distinctive in setting, not in shape.</p>
+    </div>
+    <div class="col">
+      <div class="k">B · Mona Sans (wide headlines)</div>
+      <div style="font-family: 'Mona Sans', sans-serif; font-variation-settings: 'wdth' 115; font-size: 32px; line-height: 35px; font-weight: 700; letter-spacing: -0.03em;">Sing everything in your key.</div>
+      <div style="font-family: 'Mona Sans', sans-serif; font-variation-settings: 'wdth' 110; font-size: 20px; line-height: 24px; font-weight: 600; letter-spacing: -0.015em;">Open mic · Thursday</div>
+      <div style="font-family: 'Mona Sans', sans-serif; font-size: 14px; line-height: 21px; color: #AEB5C4;">Find your range once. Every song you upload is moved to fit it, and you see exactly how close you sing.</div>
+      <div style="font-family: 'Mona Sans', sans-serif; font-size: 12px; letter-spacing: 0.02em; font-weight: 500; color: #AEB5C4;">YOUR KEY · COMFORTABLE RANGE</div>
+      <div class="mono" style="display: flex; gap: 14px; align-items: baseline;"><span style="font-size: 52px; line-height: 1; font-weight: 500; letter-spacing: -0.05em;">94</span><span style="font-size: 20px;">A4</span><span style="font-size: 14px; color: #AEB5C4;">+6&#162;</span></div>
+      <p class="why"><span style="color: #F3F5F9;">Why:</span> a width axis: headlines set wide feel like a marquee, body stays normal. The most expressive of the three.</p>
+      <p class="why"><span style="color: #F3F5F9;">Trade-off:</span> the wide setting eats horizontal space on a 390 px phone; headlines wrap to three lines more often.</p>
+    </div>
+    <div class="col">
+      <div class="k">C · Funnel Display + Funnel Sans</div>
+      <div style="font-family: 'Funnel Display', sans-serif; font-size: 34px; line-height: 36px; font-weight: 600; letter-spacing: -0.03em;">Sing everything in your key.</div>
+      <div style="font-family: 'Funnel Display', sans-serif; font-size: 20px; line-height: 24px; font-weight: 600; letter-spacing: -0.015em;">Open mic · Thursday</div>
+      <div style="font-family: 'Funnel Sans', sans-serif; font-size: 14px; line-height: 21px; color: #AEB5C4;">Find your range once. Every song you upload is moved to fit it, and you see exactly how close you sing.</div>
+      <div style="font-family: 'Funnel Sans', sans-serif; font-size: 12px; letter-spacing: 0.02em; font-weight: 500; color: #AEB5C4;">YOUR KEY · COMFORTABLE RANGE</div>
+      <div class="mono" style="display: flex; gap: 14px; align-items: baseline;"><span style="font-size: 52px; line-height: 1; font-weight: 500; letter-spacing: -0.05em;">94</span><span style="font-size: 20px;">A4</span><span style="font-size: 14px; color: #AEB5C4;">+6&#162;</span></div>
+      <p class="why"><span style="color: #F3F5F9;">Why:</span> the newest of the three (2024), geometric with a little personality in the headline face; a matching text face for body copy.</p>
+      <p class="why"><span style="color: #F3F5F9;">Trade-off:</span> two families to manage, and the display face's quirks show at large stage sizes.</p>
+    </div>
+  </div>
+</div>
+</x-dc>
+</body>
+</html>
