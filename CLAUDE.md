@@ -168,6 +168,15 @@ acting.
   beta (icon fix only).** Scope decision only — **the build itself still needs its own plan of
   record and an explicit "go" (rule 1).** Open: whether the signed-in home becomes "my songs"
   in that milestone or stays a placeholder until M2.
+- **2026-09-08 later — style reference mockup for approval (docs/design only, no code):**
+  Lando answered a 10-question T/F interview (fresh dark identity, not stage-light; precise
+  pro tool, not coach; iPhone conventions; voice check first; setlists; cinematic-but-precise
+  pitch; no badges; living light; subtle motion; stage mode). Direction A "Instrument" drawn
+  as a design canvas — style board + six phone screens + two low-fi alternates (B Editorial
+  mono, C Warm graphite): https://claude.ai/code/artifact/2d2637df-adae-44b4-b61f-ce14b881c59c ;
+  sources in `docs/design/2027-direction-a/`, rationale + tokens + sources in
+  `docs/DESIGN-DIRECTION-2027.md`. **Awaiting Lando's approval of the mockup AND the
+  foundation plan before any code.**
 - **Product decisions confirmed by Lando (2026-08-28, T/F interview):** reuse prior
   VoxApp/VoxReport tech ("Rangefinder") for profile capture · accounts-first, no
   anonymous mode · 2-stem separation for MVP · live scoring is launch-blocking ·

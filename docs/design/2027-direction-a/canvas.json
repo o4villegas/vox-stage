@@ -1,0 +1,19 @@
+{
+  "artboards": [
+    { "file": "Main.dc.html", "x": 0, "y": 0, "w": 1200, "h": 1720, "title": "Style reference · Direction A" },
+    { "file": "SignIn.dc.html", "x": 0, "y": 1880, "w": 390, "h": 844, "title": "01 Sign in" },
+    { "file": "VoiceCheck.dc.html", "x": 480, "y": 1880, "w": 390, "h": 844, "title": "02 Voice check (first run)" },
+    { "file": "Setlist.dc.html", "x": 960, "y": 1880, "w": 390, "h": 844, "title": "03 Stage · setlist home" },
+    { "file": "Song.dc.html", "x": 1440, "y": 1880, "w": 390, "h": 844, "title": "04 Song · key and mix" },
+    { "file": "Stage.dc.html", "x": 1920, "y": 1880, "w": 390, "h": 844, "title": "05 Stage mode · performing" },
+    { "file": "Result.dc.html", "x": 2400, "y": 1880, "w": 390, "h": 844, "title": "06 Result" },
+    { "file": "DirectionB.dc.html", "x": 0, "y": 2880, "w": 720, "h": 560, "title": "Direction B · Editorial mono (alternate)" },
+    { "file": "DirectionC.dc.html", "x": 800, "y": 2880, "w": 720, "h": 560, "title": "Direction C · Warm graphite (alternate)" }
+  ],
+  "annotations": [
+    { "id": "brief", "x": 1290, "y": 0, "w": 300, "text": "What you decided (8 Sept):\n- Fresh dark identity, not the old stage-light look\n- Precise professional tool, not a coach\n- Familiar iPhone conventions\n- Voice check comes first\n- Songs live in setlists for real gigs\n- Cinematic pitch picture, precise underneath\n- No badges or confetti\n- Living light that follows your voice\n- Subtle motion; cinematic only twice\n- A stage mode readable from a mic stand\n\nDirection A (this board and the six screens) is the recommendation. B and C below are honest alternates, drawn low-fi so the choice is about direction, not polish." },
+    { "id": "screens", "x": 2880, "y": 1880, "w": 280, "text": "The six screens are static mockups of the flow a first user takes: sign in, voice check, the setlist home, a song's key and mix, stage mode while singing, and the result.\n\nSong titles are sample content. Numbers shown (94, +6 cents, B minus 3) are examples of the readouts, not measurements." },
+    { "id": "alts", "x": 1600, "y": 2880, "w": 280, "text": "Pick a direction, not a polish level. If B or C wins, the six screens get redrawn in it before anything is built. If A wins, the next step is your go on the foundation plan; the first build then implements these tokens and components." }
+  ],
+  "launch": { "view": "canvas" }
+}
