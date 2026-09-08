@@ -163,7 +163,11 @@ acting.
   M2–M6 (tokens scale, components, router, data layer, motion, audio module boundary, PWA,
   E2E/visual tests, coverage provider). **Options A/B/C in §8; recommendation = A (a
   front-end foundation milestone before M2, with the defect fixes as its first commit).**
-  **Awaiting Lando's choice — nothing is approved to build.**
+  **Lando chose A (2026-09-08, structured prompt): foundation milestone before M2; phone-first,
+  desktop must not break; dark look permanent (single theme); offline/home-screen NOT for the
+  beta (icon fix only).** Scope decision only — **the build itself still needs its own plan of
+  record and an explicit "go" (rule 1).** Open: whether the signed-in home becomes "my songs"
+  in that milestone or stays a placeholder until M2.
 - **Product decisions confirmed by Lando (2026-08-28, T/F interview):** reuse prior
   VoxApp/VoxReport tech ("Rangefinder") for profile capture · accounts-first, no
   anonymous mode · 2-stem separation for MVP · live scoring is launch-blocking ·
