@@ -147,6 +147,23 @@ acting.
   (R62). Lesson kept from the secret step: `wrangler secret put` is refused while a
   branch preview is the latest *uploaded* version — store new secrets when `main` is the
   latest deployed version.
+- **2026-09-08 — whole-app state assessment delivered (docs only, no code):**
+  `docs/STATUS-2026-09-08.md`. Measured: all gates green on `main` `14bb461`; live bundle =
+  local build; Lighthouse a11y 100 / BP 96 / SEO 91; LCP 131 ms, CLS 0; no overflow at six
+  widths. **Seventeen measured front-end defects (F1–F17; 24/25 claims re-verified by an
+  independent agent; an independent UX audit scored 49/100 and agreed)** — headline: "Sign
+  out" can silently fail (try/finally, no catch — server session survives), keyboard focus
+  lost after any failed submit (focus() runs while the input is still disabled), signed-in
+  home overflows 375×667 / 390×844 phones by 272 / 78 px, no request timeout (dead screen on
+  a stalled connection), rejected code not attached to its field, 45 %-cream text at 4.10:1 (fails AA), no
+  routing/URL state, `100dvh`/`:focus-visible` need iOS 15.4 vs the declared 14.5 floor, not
+  installable (no apple-touch-icon / SW), render-blocking Google Fonts, no error boundary,
+  `robots.txt` missing (staging indexable), no security headers, 862 KB source map public,
+  no asset caching. Plus foundation gaps for
+  M2–M6 (tokens scale, components, router, data layer, motion, audio module boundary, PWA,
+  E2E/visual tests, coverage provider). **Options A/B/C in §8; recommendation = A (a
+  front-end foundation milestone before M2, with the defect fixes as its first commit).**
+  **Awaiting Lando's choice — nothing is approved to build.**
 - **Product decisions confirmed by Lando (2026-08-28, T/F interview):** reuse prior
   VoxApp/VoxReport tech ("Rangefinder") for profile capture · accounts-first, no
   anonymous mode · 2-stem separation for MVP · live scoring is launch-blocking ·
