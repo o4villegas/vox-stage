@@ -5,13 +5,21 @@
       "x": 0,
       "y": 0,
       "w": 1200,
-      "h": 2480,
-      "title": "Style reference · Direction A"
+      "h": 3400,
+      "title": "Style reference · Direction A · revision 2"
+    },
+    {
+      "file": "TypeOptions.dc.html",
+      "x": 1290,
+      "y": 330,
+      "w": 900,
+      "h": 700,
+      "title": "Type options · pick one"
     },
     {
       "file": "SignIn.dc.html",
       "x": 0,
-      "y": 2640,
+      "y": 3560,
       "w": 390,
       "h": 844,
       "title": "01 Sign in"
@@ -19,7 +27,7 @@
     {
       "file": "VoiceCheck.dc.html",
       "x": 480,
-      "y": 2640,
+      "y": 3560,
       "w": 390,
       "h": 844,
       "title": "02 Voice check (first run)"
@@ -27,7 +35,7 @@
     {
       "file": "Setlist.dc.html",
       "x": 960,
-      "y": 2640,
+      "y": 3560,
       "w": 390,
       "h": 844,
       "title": "03 Stage · setlist home"
@@ -35,7 +43,7 @@
     {
       "file": "Song.dc.html",
       "x": 1440,
-      "y": 2640,
+      "y": 3560,
       "w": 390,
       "h": 844,
       "title": "04 Song · key and mix"
@@ -43,7 +51,7 @@
     {
       "file": "Stage.dc.html",
       "x": 1920,
-      "y": 2640,
+      "y": 3560,
       "w": 390,
       "h": 844,
       "title": "05 Stage mode · performing"
@@ -51,7 +59,7 @@
     {
       "file": "Result.dc.html",
       "x": 2400,
-      "y": 2640,
+      "y": 3560,
       "w": 390,
       "h": 844,
       "title": "06 Result"
@@ -59,7 +67,7 @@
     {
       "file": "DirectionB.dc.html",
       "x": 0,
-      "y": 3640,
+      "y": 4564,
       "w": 720,
       "h": 560,
       "title": "Direction B · Editorial mono (alternate)"
@@ -67,7 +75,7 @@
     {
       "file": "DirectionC.dc.html",
       "x": 800,
-      "y": 3640,
+      "y": 4564,
       "w": 720,
       "h": 560,
       "title": "Direction C · Warm graphite (alternate)"
@@ -79,21 +87,28 @@
       "x": 1290,
       "y": 0,
       "w": 300,
-      "text": "What you decided (8 Sept):\n- Fresh dark identity, not the old stage-light look\n- Precise professional tool, not a coach\n- Familiar iPhone conventions\n- Voice check comes first\n- Songs live in setlists for real gigs\n- Cinematic pitch picture, precise underneath\n- No badges or confetti\n- Living light that follows your voice\n- Subtle motion; cinematic only twice\n- A stage mode readable from a mic stand\n\nDirection A (this board and the six screens) is the recommendation. B and C below are honest alternates, drawn low-fi so the choice is about direction, not polish."
+      "text": "Revision 2 (8 Sept, evening): you liked Direction A and asked for more dimension and a more modern typeface.\n\nChanged: a four-level elevation system (void, panel, object, glass) with lit edges and real shadows; a perspective stage floor and a light from above on every screen; recessed fields, raised buttons; the stage-mode pitch view is now a runway with depth; type is now Geist + Geist Mono (two alternatives on the Type options board to the right).\n\nUnchanged: palette, the living-light rule, the ten answers from the interview, and the two alternate directions below."
     },
     {
       "id": "screens",
       "x": 2880,
-      "y": 2640,
+      "y": 3560,
       "w": 280,
-      "text": "The six screens are static mockups of the flow a first user takes: sign in, voice check, the setlist home, a song's key and mix, stage mode while singing, and the result.\n\nSong titles are sample content. Numbers shown (94, +6 cents, B minus 3) are examples of the readouts, not measurements."
+      "text": "The six screens are static mockups of the flow a first user takes: sign in, voice check, the setlist home, a song's key and mix, stage mode while singing, and the result.\n\nAll numbers, note names, dates, venue and song titles are sample content, not measurements: the 94 score and its section scores, +6 and +22 cents, B minus 3, 62 %, minus 18 dB, 1:48 / 3:54, and \"up 6 from Sunday\"."
     },
     {
       "id": "alts",
       "x": 1600,
-      "y": 3640,
+      "y": 4564,
       "w": 280,
       "text": "Pick a direction, not a polish level. If B or C wins, the six screens get redrawn in it before anything is built. If A wins, the next step is your go on the foundation plan; the first build then implements these tokens and components."
+    },
+    {
+      "id": "type",
+      "x": 2220,
+      "y": 330,
+      "w": 260,
+      "text": "Three pairings, same words. My pick is the first (Geist): current, even, precise, and its mono lines up with the text face. Say which one you want and every screen is redrawn in it."
     }
   ],
   "launch": {

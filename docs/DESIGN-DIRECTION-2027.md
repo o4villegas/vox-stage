@@ -49,10 +49,9 @@ is quiet: iPhone-familiar navigation, 120–320 ms motion, and exactly two cinem
 | Voice · flat / on / sharp | `#6C7CFF` · `#FFF4E0` · `#FF6B8A` | living light + sung line | 5.7 / 18.4 / 7.4 : 1 on Void |
 | Ready / Attention / Problem | `#4FD1A0` · `#FFC857` · `#FF5C7A` | status only | 10.4 / 13.0 / 5.8 : 1 |
 
-Type: **Bricolage Grotesque** (variable, optical size 12–96 + weight) for everything read;
-**IBM Plex Mono** (tabular figures) for everything measured — cents, notes, keys, scores.
-Ramp: display 40/44 · title 28/32 · heading 20/26 · body 16/24 · label 13/16 · readouts
-18–120 (stage). Spacing on a 4-pt scale; radii 8 / 14 / 22 / pill; controls 52 px tall in
+Type (revision 2 — see §7): **Geist** for everything read; **Geist Mono** (tabular figures) for
+everything measured — cents, notes, keys, scores. Ramp: display 44/46 · title 30/34 · heading 20/26 ·
+body 16/24 · label 13/16 · readouts 18–120 (stage). Spacing on a 4-pt scale; radii 8 / 14 / 22 / pill; controls 52 px tall in
 the hand, **76 px on stage**; stage type ≥ 56 px with a 120 px note letter.
 
 Motion: micro 120 ms, transitions 200–240 ms, sheets and routes 320 ms with a
@@ -109,3 +108,31 @@ Its first commits implement these tokens and primitives; the six screens become 
 acceptance targets for the sign-in flow (now), and the reference for M2–M5 screens
 (later). Sample content on the canvas (song titles, the 94 score, +6 ¢, B −3) is
 illustrative, not measured.
+
+## 7. Revision 2 (2026-09-08, evening) — Lando: "I like it but we need to add more dimension and better, more modern font"
+
+**Type:** Bricolage Grotesque + IBM Plex Mono replaced by **Geist** (everything read) + **Geist Mono** (everything measured) —
+one family, two voices; Geist has no optical-size axis, so the ramp now leans on weight and tracking (display 44/46 · 600 · −3.5 %).
+Two alternatives are drawn on a "Type options" board for a veto: **Mona Sans** (width axis, marquee-wide headlines) and
+**Funnel Display + Funnel Sans** (2024 geometric pairing). All three verified available on Google Fonts 2026-09-08.
+
+**Dimension — a four-level elevation system,** drawn on the style board and applied to every screen:
+
+| Level | Name | Treatment | Used for |
+|---|---|---|---|
+| E0 | Void | flat ground | the stage; only the floor grid and light live here |
+| E1 | Panel | vertical gradient #131722→#0D1017, 1 px lit top edge (white 7 %), 16 px shadow | cards, charts |
+| E2 | Object | lighter gradient #1B2030→#151926, lit edge 9 %, tighter shadow | rows, buttons, controls |
+| E3 | Glass | rgba(22,26,38,0.62) + 22 px blur, edge white 14 %, 30 px shadow | floating layers only: tab bar, sheets, the stage readout |
+
+Plus: a **perspective stage floor** (Signal-tinted grid, `rotateX(68°)`, fading to the horizon) under every screen; **one light from above**
+(a soft white cone); **recessed fields** (inner shadow) versus **raised buttons** (lit slab, tinted shadow) so places-to-type and
+things-to-press read differently; **parallax rule** floor 0.3×, glass 1×, light 0.6×; press = object sinks 1 px, shadow tightens.
+The **stage-mode pitch view is now a runway**: seven pitch lanes recede toward a vanishing point, upcoming notes are slabs in the
+distance, the sung line rides the lane toward the "now" plane in living light.
+
+**Also fixed from the independent second pass on revision 1:** the song screen's vertical rhythm (it ran ~20–35 px long),
+stage-mode secondary readouts raised to 20–24 px and the rule reworded ("primary ≥ 56 px, secondary ≥ 20 px"), the pitch lanes
+corrected to the performed key (B major: C#4 D#4 E4 F#4 G#4 A#4 B4; the sung note is F#4), icon-only controls given 44 px hit
+areas, the add button raised to 44 px, dates made true for the week of 8 Sept 2026 (a Tuesday), "key badges" → "key chips",
+US spelling, an End control on stage, hairline/shadow tokens named, and the sample-data note broadened.

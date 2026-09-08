@@ -7,39 +7,52 @@
 <body>
 <x-dc>
 <helmet>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,200..800&amp;family=IBM+Plex+Mono:wght@400;500;600&amp;display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&amp;family=Geist+Mono:wght@100..900&amp;display=swap">
   <style>
-    body { margin: 0; background: #06080F; color: #F3F5F9; font-family: "Bricolage Grotesque", "Helvetica Neue", Arial, sans-serif; font-variation-settings: "opsz" 14; }
+    body { margin: 0; background: #06080F; color: #F3F5F9; font-family: "Geist", "Helvetica Neue", Arial, sans-serif; -webkit-font-smoothing: antialiased; }
     a { color: #5B8CFF; } a:hover { color: #8FB0FF; }
-    .mono { font-family: "IBM Plex Mono", "SF Mono", Menlo, monospace; font-variant-numeric: tabular-nums; }
-    .row { display: grid; grid-template-columns: 78px 1fr 34px; gap: 12px; align-items: center; font-size: 14px; }
-    .bar { position: relative; height: 8px; border-radius: 4px; background: rgba(255,255,255,0.10); }
+    .mono { font-family: "Geist Mono", "SF Mono", Menlo, monospace; font-variant-numeric: tabular-nums; }
+    .e1 { background: linear-gradient(180deg, #131722 0%, #0D1017 100%); border: 1px solid rgba(255,255,255,0.08); box-shadow: inset 0 1px 0 rgba(255,255,255,0.07), 0 16px 36px -24px rgba(0,0,0,0.95); }
+    .e2 { background: linear-gradient(180deg, #1B2030 0%, #151926 100%); border: 1px solid rgba(255,255,255,0.09); box-shadow: inset 0 1px 0 rgba(255,255,255,0.09), 0 10px 26px -18px rgba(0,0,0,0.95); }
+    .glass { background: rgba(22,26,38,0.62); backdrop-filter: blur(22px) saturate(140%); -webkit-backdrop-filter: blur(22px) saturate(140%); border: 1px solid rgba(255,255,255,0.14); box-shadow: inset 0 1px 0 rgba(255,255,255,0.14), 0 30px 60px -30px rgba(0,0,0,0.95); }
+    .floor { position: absolute; left: -45%; right: -45%; bottom: -160px; height: 460px; pointer-events: none; background-image: linear-gradient(rgba(91,140,255,0.16) 1px, transparent 1px), linear-gradient(90deg, rgba(91,140,255,0.16) 1px, transparent 1px); background-size: 46px 46px; transform: perspective(520px) rotateX(68deg); transform-origin: 50% 0%; -webkit-mask-image: linear-gradient(180deg, rgba(0,0,0,0.85), rgba(0,0,0,0) 80%); mask-image: linear-gradient(180deg, rgba(0,0,0,0.85), rgba(0,0,0,0) 80%); }
+    .beam { position: absolute; left: 50%; top: -80px; width: 560px; height: 700px; transform: translateX(-50%); pointer-events: none; background: conic-gradient(from 0deg at 50% 0%, rgba(255,244,224,0) 42%, rgba(255,244,224,0.08) 46.5%, rgba(255,244,224,0.16) 50%, rgba(255,244,224,0.08) 53.5%, rgba(255,244,224,0) 58%); filter: blur(8px); }
+    .btn-primary { height: 52px; border-radius: 14px; background: linear-gradient(180deg, #7AA2FF 0%, #5B8CFF 55%, #4B7CF0 100%); color: #06080F; font-weight: 600; font-size: 16px; display: flex; align-items: center; justify-content: center; gap: 10px; box-shadow: inset 0 1px 0 rgba(255,255,255,0.45), 0 12px 28px -14px rgba(91,140,255,0.9); }
+    .btn-secondary { height: 52px; border-radius: 14px; background: linear-gradient(180deg, #1F2434 0%, #171B26 100%); color: #F3F5F9; font-weight: 600; font-size: 16px; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(255,255,255,0.10); box-shadow: inset 0 1px 0 rgba(255,255,255,0.10), 0 10px 24px -18px rgba(0,0,0,0.9); }
+    .btn-quiet { height: 44px; border-radius: 14px; color: #AEB5C4; font-weight: 500; font-size: 15px; display: flex; align-items: center; justify-content: center; }
+    .lbl { font-size: 13px; font-weight: 500; letter-spacing: 0.02em; color: #AEB5C4; }
+    .chip { display: inline-flex; align-items: center; gap: 6px; height: 26px; padding: 0 9px; border-radius: 8px; font-size: 12px; font-weight: 600; white-space: nowrap; box-shadow: inset 0 1px 0 rgba(255,255,255,0.10); }
+    .tab { height: 52px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; color: #848CA0; border-radius: 26px; }
+    .tab.on { background: linear-gradient(180deg, rgba(91,140,255,0.22), rgba(91,140,255,0.12)); color: #5B8CFF; box-shadow: inset 0 1px 0 rgba(255,255,255,0.16); }
+    .tabbar { position: absolute; left: 21px; right: 21px; bottom: 21px; height: 64px; border-radius: 32px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); align-items: center; padding: 6px; }
   </style>
 </helmet>
-<div style="position: relative; width: 390px; height: 844px; overflow: hidden; background: #06080F; display: flex; flex-direction: column; box-sizing: border-box; padding: 54px 20px 34px; gap: 20px;">
-  <div style="position: absolute; left: 50%; top: 120px; width: 520px; height: 520px; transform: translateX(-50%); border-radius: 50%; background: radial-gradient(circle, rgba(255,244,224,0.30), rgba(108,124,255,0.10) 45%, rgba(6,8,15,0) 70%); filter: blur(40px);"></div>
-  <div style="display: flex; align-items: center; justify-content: space-between; position: relative;"><span style="font-size: 13px; font-weight: 500; letter-spacing: 0.02em; color: #AEB5C4;">VALERIE · IN B</span><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#AEB5C4" stroke-width="1.8" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"></path></svg></div>
-  <div style="display: flex; flex-direction: column; align-items: center; gap: 6px; position: relative; padding-top: 10px;">
-    <div style="position: relative; width: 220px; height: 220px; display: flex; align-items: center; justify-content: center;">
-      <svg width="220" height="220" viewBox="0 0 220 220" style="position: absolute; inset: 0;"><circle cx="110" cy="110" r="100" fill="none" stroke="rgba(255,255,255,0.10)" stroke-width="8"></circle><circle cx="110" cy="110" r="100" fill="none" stroke="#FFF4E0" stroke-width="8" stroke-linecap="round" stroke-dasharray="628" stroke-dashoffset="38" transform="rotate(-90 110 110)"></circle></svg>
-      <div style="display: flex; flex-direction: column; align-items: center; gap: 2px;"><span class="mono" style="font-size: 96px; line-height: 1; font-weight: 500; letter-spacing: -0.05em;">94</span><span style="font-size: 13px; font-weight: 500; letter-spacing: 0.02em; color: #AEB5C4;">PITCH ACCURACY</span></div>
+<div style="position: relative; width: 390px; height: 844px; overflow: hidden; background: #06080F; display: flex; flex-direction: column; box-sizing: border-box; padding: 54px 20px 34px; gap: 18px;">
+  <div class="beam"></div>
+  <div class="floor" style="opacity: 0.6;"></div>
+  <div style="position: absolute; left: 50%; top: 110px; width: 520px; height: 520px; transform: translateX(-50%); border-radius: 50%; background: radial-gradient(circle, rgba(255,244,224,0.28), rgba(108,124,255,0.10) 45%, rgba(6,8,15,0) 70%); filter: blur(40px);"></div>
+  <div style="display: flex; align-items: center; justify-content: space-between; position: relative;"><span class="lbl">VALERIE · IN B</span><div style="width: 44px; height: 44px; margin-right: -12px; display: flex; align-items: center; justify-content: center;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#AEB5C4" stroke-width="1.8" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"></path></svg></div></div>
+  <div style="display: flex; flex-direction: column; align-items: center; gap: 8px; position: relative; padding-top: 6px;">
+    <div style="position: relative; width: 228px; height: 228px; display: flex; align-items: center; justify-content: center;">
+      <svg width="228" height="228" viewBox="0 0 228 228" style="position: absolute; inset: 0;"><circle cx="114" cy="114" r="102" fill="none" stroke="rgba(0,0,0,0.6)" stroke-width="12"></circle><circle cx="114" cy="114" r="102" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="8"></circle><circle cx="114" cy="114" r="102" fill="none" stroke="#FFF4E0" stroke-width="8" stroke-linecap="round" stroke-dasharray="641" stroke-dashoffset="38" transform="rotate(-90 114 114)" style="filter: drop-shadow(0 0 10px rgba(255,244,224,0.85));"></circle></svg>
+      <div class="glass" style="width: 168px; height: 168px; border-radius: 84px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;"><span class="mono" style="font-size: 88px; line-height: 1; font-weight: 500; letter-spacing: -0.06em;">94</span><span class="lbl" style="font-size: 11px;">PITCH ACCURACY</span></div>
     </div>
-    <div style="display: flex; align-items: center; gap: 8px; font-size: 14px; color: #4FD1A0;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4FD1A0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M6 11l6-6 6 6"></path></svg>Personal best · up 6 from Tuesday</div>
+    <div style="display: flex; align-items: center; gap: 8px; font-size: 14px; color: #4FD1A0;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4FD1A0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M6 11l6-6 6 6"></path></svg>Personal best · up 6 from Sunday</div>
   </div>
-  <div style="background: #0E1119; border: 1px solid rgba(255,255,255,0.09); border-radius: 22px; padding: 18px; display: flex; flex-direction: column; gap: 12px; position: relative;">
-    <div class="row"><span style="color: #AEB5C4;">Verse 1</span><div class="bar"><div style="position: absolute; left: 0; top: 0; height: 8px; width: 97%; border-radius: 4px; background: #F3F5F9;"></div></div><span class="mono" style="text-align: right;">97</span></div>
-    <div class="row"><span style="color: #AEB5C4;">Chorus 1</span><div class="bar"><div style="position: absolute; left: 0; top: 0; height: 8px; width: 88%; border-radius: 4px; background: #F3F5F9;"></div></div><span class="mono" style="text-align: right;">88</span></div>
-    <div class="row"><span style="color: #AEB5C4;">Bridge</span><div class="bar"><div style="position: absolute; left: 0; top: 0; height: 8px; width: 93%; border-radius: 4px; background: #F3F5F9;"></div></div><span class="mono" style="text-align: right;">93</span></div>
-    <div class="row"><span style="color: #AEB5C4;">Chorus 2</span><div class="bar"><div style="position: absolute; left: 0; top: 0; height: 8px; width: 96%; border-radius: 4px; background: #F3F5F9;"></div></div><span class="mono" style="text-align: right;">96</span></div>
+  <div class="e1" style="border-radius: 22px; padding: 18px; display: flex; flex-direction: column; gap: 12px; position: relative;">
+    <div style="display: grid; grid-template-columns: 78px 1fr 34px; gap: 12px; align-items: center; font-size: 14px;"><span style="color: #AEB5C4;">Verse 1</span><div style="position: relative; height: 8px; border-radius: 4px; background: #0B0E15; box-shadow: inset 0 1px 3px rgba(0,0,0,0.7);"><div style="position: absolute; left: 0; top: 0; height: 8px; width: 97%; border-radius: 4px; background: linear-gradient(180deg, #FFFFFF, #D9DDE6);"></div></div><span class="mono" style="text-align: right;">97</span></div>
+    <div style="display: grid; grid-template-columns: 78px 1fr 34px; gap: 12px; align-items: center; font-size: 14px;"><span style="color: #AEB5C4;">Chorus 1</span><div style="position: relative; height: 8px; border-radius: 4px; background: #0B0E15; box-shadow: inset 0 1px 3px rgba(0,0,0,0.7);"><div style="position: absolute; left: 0; top: 0; height: 8px; width: 88%; border-radius: 4px; background: linear-gradient(180deg, #FFFFFF, #D9DDE6);"></div></div><span class="mono" style="text-align: right;">88</span></div>
+    <div style="display: grid; grid-template-columns: 78px 1fr 34px; gap: 12px; align-items: center; font-size: 14px;"><span style="color: #AEB5C4;">Bridge</span><div style="position: relative; height: 8px; border-radius: 4px; background: #0B0E15; box-shadow: inset 0 1px 3px rgba(0,0,0,0.7);"><div style="position: absolute; left: 0; top: 0; height: 8px; width: 93%; border-radius: 4px; background: linear-gradient(180deg, #FFFFFF, #D9DDE6);"></div></div><span class="mono" style="text-align: right;">93</span></div>
+    <div style="display: grid; grid-template-columns: 78px 1fr 34px; gap: 12px; align-items: center; font-size: 14px;"><span style="color: #AEB5C4;">Chorus 2</span><div style="position: relative; height: 8px; border-radius: 4px; background: #0B0E15; box-shadow: inset 0 1px 3px rgba(0,0,0,0.7);"><div style="position: absolute; left: 0; top: 0; height: 8px; width: 96%; border-radius: 4px; background: linear-gradient(180deg, #FFFFFF, #D9DDE6);"></div></div><span class="mono" style="text-align: right;">96</span></div>
   </div>
-  <div style="display: flex; gap: 12px; align-items: flex-start; background: #171B26; border-radius: 18px; padding: 14px 16px; position: relative;">
-    <span style="width: 10px; height: 10px; margin-top: 5px; border-radius: 50%; background: #FF6B8A; flex: 0 0 auto;"></span>
-    <p style="margin: 0; font-size: 14px; line-height: 20px; color: #AEB5C4;"><span style="color: #F3F5F9; font-weight: 600;">Sharp on the chorus high notes</span> (A4, up to +22&#162;). Try the same key with the vocal guide up, or one step lower.</p>
+  <div class="e2" style="display: flex; gap: 12px; align-items: flex-start; border-radius: 18px; padding: 14px 16px; position: relative;">
+    <span style="width: 10px; height: 10px; margin-top: 5px; border-radius: 50%; background: #FF6B8A; box-shadow: 0 0 10px rgba(255,107,138,0.8); flex: 0 0 auto;"></span>
+    <p style="margin: 0; font-size: 14px; line-height: 20px; color: #AEB5C4;"><span style="color: #F3F5F9; font-weight: 600;">Sharp on the chorus high notes</span> (F#4, up to +22&#162;). Try the same key with the vocal guide up, or one step lower.</p>
   </div>
   <div style="flex: 1 1 auto;"></div>
   <div style="display: flex; flex-direction: column; gap: 10px; position: relative;">
-    <div style="height: 52px; border-radius: 14px; background: #5B8CFF; color: #06080F; font-weight: 600; font-size: 16px; display: flex; align-items: center; justify-content: center;">Sing it again</div>
-    <div style="height: 52px; border-radius: 14px; background: #171B26; color: #F3F5F9; font-weight: 600; font-size: 16px; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(255,255,255,0.09);">Back to the setlist</div>
+    <div class="btn-primary">Sing it again</div>
+    <div class="btn-secondary">Back to the setlist</div>
   </div>
 </div>
 </x-dc>

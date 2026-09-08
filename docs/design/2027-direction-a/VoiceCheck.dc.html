@@ -7,57 +7,68 @@
 <body>
 <x-dc>
 <helmet>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,200..800&amp;family=IBM+Plex+Mono:wght@400;500;600&amp;display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&amp;family=Geist+Mono:wght@100..900&amp;display=swap">
   <style>
-    body { margin: 0; background: #06080F; color: #F3F5F9; font-family: "Bricolage Grotesque", "Helvetica Neue", Arial, sans-serif; font-variation-settings: "opsz" 14; }
+    body { margin: 0; background: #06080F; color: #F3F5F9; font-family: "Geist", "Helvetica Neue", Arial, sans-serif; -webkit-font-smoothing: antialiased; }
     a { color: #5B8CFF; } a:hover { color: #8FB0FF; }
-    .mono { font-family: "IBM Plex Mono", "SF Mono", Menlo, monospace; font-variant-numeric: tabular-nums; }
-    .lane { display: flex; align-items: center; gap: 10px; height: 26px; }
-    .lane .n { width: 30px; font-size: 11px; color: #848CA0; text-align: right; }
-    .lane .t { flex: 1 1 auto; height: 1px; background: rgba(255,255,255,0.10); }
+    .mono { font-family: "Geist Mono", "SF Mono", Menlo, monospace; font-variant-numeric: tabular-nums; }
+    .e1 { background: linear-gradient(180deg, #131722 0%, #0D1017 100%); border: 1px solid rgba(255,255,255,0.08); box-shadow: inset 0 1px 0 rgba(255,255,255,0.07), 0 16px 36px -24px rgba(0,0,0,0.95); }
+    .e2 { background: linear-gradient(180deg, #1B2030 0%, #151926 100%); border: 1px solid rgba(255,255,255,0.09); box-shadow: inset 0 1px 0 rgba(255,255,255,0.09), 0 10px 26px -18px rgba(0,0,0,0.95); }
+    .glass { background: rgba(22,26,38,0.62); backdrop-filter: blur(22px) saturate(140%); -webkit-backdrop-filter: blur(22px) saturate(140%); border: 1px solid rgba(255,255,255,0.14); box-shadow: inset 0 1px 0 rgba(255,255,255,0.14), 0 30px 60px -30px rgba(0,0,0,0.95); }
+    .floor { position: absolute; left: -45%; right: -45%; bottom: -160px; height: 460px; pointer-events: none; background-image: linear-gradient(rgba(91,140,255,0.16) 1px, transparent 1px), linear-gradient(90deg, rgba(91,140,255,0.16) 1px, transparent 1px); background-size: 46px 46px; transform: perspective(520px) rotateX(68deg); transform-origin: 50% 0%; -webkit-mask-image: linear-gradient(180deg, rgba(0,0,0,0.85), rgba(0,0,0,0) 80%); mask-image: linear-gradient(180deg, rgba(0,0,0,0.85), rgba(0,0,0,0) 80%); }
+    .beam { position: absolute; left: 50%; top: -80px; width: 560px; height: 700px; transform: translateX(-50%); pointer-events: none; background: conic-gradient(from 0deg at 50% 0%, rgba(255,244,224,0) 42%, rgba(255,244,224,0.08) 46.5%, rgba(255,244,224,0.16) 50%, rgba(255,244,224,0.08) 53.5%, rgba(255,244,224,0) 58%); filter: blur(8px); }
+    .btn-primary { height: 52px; border-radius: 14px; background: linear-gradient(180deg, #7AA2FF 0%, #5B8CFF 55%, #4B7CF0 100%); color: #06080F; font-weight: 600; font-size: 16px; display: flex; align-items: center; justify-content: center; gap: 10px; box-shadow: inset 0 1px 0 rgba(255,255,255,0.45), 0 12px 28px -14px rgba(91,140,255,0.9); }
+    .btn-secondary { height: 52px; border-radius: 14px; background: linear-gradient(180deg, #1F2434 0%, #171B26 100%); color: #F3F5F9; font-weight: 600; font-size: 16px; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(255,255,255,0.10); box-shadow: inset 0 1px 0 rgba(255,255,255,0.10), 0 10px 24px -18px rgba(0,0,0,0.9); }
+    .btn-quiet { height: 44px; border-radius: 14px; color: #AEB5C4; font-weight: 500; font-size: 15px; display: flex; align-items: center; justify-content: center; }
+    .lbl { font-size: 13px; font-weight: 500; letter-spacing: 0.02em; color: #AEB5C4; }
+    .chip { display: inline-flex; align-items: center; gap: 6px; height: 26px; padding: 0 9px; border-radius: 8px; font-size: 12px; font-weight: 600; white-space: nowrap; box-shadow: inset 0 1px 0 rgba(255,255,255,0.10); }
+    .tab { height: 52px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; color: #848CA0; border-radius: 26px; }
+    .tab.on { background: linear-gradient(180deg, rgba(91,140,255,0.22), rgba(91,140,255,0.12)); color: #5B8CFF; box-shadow: inset 0 1px 0 rgba(255,255,255,0.16); }
+    .tabbar { position: absolute; left: 21px; right: 21px; bottom: 21px; height: 64px; border-radius: 32px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); align-items: center; padding: 6px; }
   </style>
 </helmet>
 <div style="position: relative; width: 390px; height: 844px; overflow: hidden; background: #06080F; display: flex; flex-direction: column; box-sizing: border-box; padding: 54px 24px 34px; gap: 18px;">
-  <div style="position: absolute; left: 50%; top: 300px; width: 360px; height: 360px; transform: translateX(-50%); border-radius: 50%; background: radial-gradient(circle, rgba(255,244,224,0.55), rgba(255,244,224,0.12) 40%, rgba(6,8,15,0) 70%); filter: blur(30px);"></div>
+  <div class="beam" style="opacity: 0.8;"></div>
+  <div style="position: absolute; left: 50%; top: 330px; width: 380px; height: 380px; transform: translateX(-50%); border-radius: 50%; background: radial-gradient(circle, rgba(255,244,224,0.5), rgba(255,244,224,0.12) 40%, rgba(6,8,15,0) 70%); filter: blur(30px);"></div>
   <div style="display: flex; align-items: center; justify-content: space-between; position: relative;">
-    <div style="display: flex; align-items: center; gap: 10px;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#AEB5C4" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"></path></svg><span style="font-size: 13px; font-weight: 500; letter-spacing: 0.02em; color: #AEB5C4;">VOICE CHECK</span></div>
-    <div style="display: flex; gap: 6px;"><div style="width: 22px; height: 4px; border-radius: 2px; background: #F3F5F9;"></div><div style="width: 22px; height: 4px; border-radius: 2px; background: #F3F5F9;"></div><div style="width: 22px; height: 4px; border-radius: 2px; background: #171B26;"></div></div>
+    <div style="display: flex; align-items: center; gap: 6px;"><div style="width: 44px; height: 44px; margin-left: -12px; display: flex; align-items: center; justify-content: center;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#AEB5C4" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"></path></svg></div><span class="lbl">VOICE CHECK</span></div>
+    <div style="display: flex; gap: 6px;"><div style="width: 22px; height: 4px; border-radius: 2px; background: #F3F5F9; box-shadow: 0 0 8px rgba(255,255,255,0.5);"></div><div style="width: 22px; height: 4px; border-radius: 2px; background: #F3F5F9; box-shadow: 0 0 8px rgba(255,255,255,0.5);"></div><div style="width: 22px; height: 4px; border-radius: 2px; background: #171B26;"></div></div>
   </div>
   <div style="display: flex; flex-direction: column; gap: 6px; position: relative;">
-    <h1 style="margin: 0; font-size: 28px; line-height: 32px; font-weight: 600; letter-spacing: -0.015em; font-variation-settings: 'opsz' 48;">Slide up to your highest comfortable note.</h1>
+    <h1 style="margin: 0; font-size: 28px; line-height: 32px; font-weight: 600; letter-spacing: -0.025em;">Slide up to your highest comfortable note.</h1>
     <p style="margin: 0; font-size: 15px; line-height: 22px; color: #AEB5C4;">Then hold it for two seconds. Stop where it starts to strain.</p>
   </div>
-  <div style="flex: 1 1 auto; display: grid; grid-template-columns: 1fr 150px; gap: 16px; align-items: stretch; position: relative;">
-    <div style="display: flex; flex-direction: column; justify-content: space-between; padding: 6px 0;">
-      <div class="lane"><span class="n mono">C5</span><span class="t"></span></div>
-      <div class="lane"><span class="n mono">B4</span><span class="t"></span></div>
-      <div class="lane" style="position: relative;"><span class="n mono" style="color: #F3F5F9; font-weight: 600;">A4</span><span class="t" style="height: 2px; background: #FFF4E0; box-shadow: 0 0 18px 2px rgba(255,244,224,0.8);"></span></div>
-      <div class="lane"><span class="n mono">G4</span><span class="t"></span></div>
-      <div class="lane"><span class="n mono">F4</span><span class="t"></span></div>
-      <div class="lane"><span class="n mono">E4</span><span class="t"></span></div>
-      <div class="lane"><span class="n mono">D4</span><span class="t"></span></div>
-      <div class="lane"><span class="n mono">C4</span><span class="t"></span></div>
-      <div class="lane"><span class="n mono">B3</span><span class="t"></span></div>
-      <div class="lane"><span class="n mono">A3</span><span class="t"></span></div>
-      <div class="lane"><span class="n mono">G3</span><span class="t"></span></div>
-      <div class="lane"><span class="n mono">F3</span><span class="t"></span></div>
-      <div class="lane"><span class="n mono">E3</span><span class="t"></span></div>
-      <div class="lane"><span class="n mono">D3</span><span class="t"></span></div>
-      <div class="lane"><span class="n mono">C3</span><span class="t"></span></div>
+  <div style="flex: 1 1 auto; display: grid; grid-template-columns: 1fr 158px; gap: 14px; align-items: stretch; position: relative;">
+    <div class="e1" style="border-radius: 22px; padding: 14px 14px 14px 10px; display: flex; flex-direction: column; justify-content: space-between;">
+      <div style="display: flex; align-items: center; gap: 10px; height: 24px;"><span class="mono" style="width: 30px; font-size: 11px; color: #848CA0; text-align: right;">C5</span><span style="flex: 1 1 auto; height: 1px; background: rgba(255,255,255,0.10);"></span></div>
+      <div style="display: flex; align-items: center; gap: 10px; height: 24px;"><span class="mono" style="width: 30px; font-size: 11px; color: #848CA0; text-align: right;">B4</span><span style="flex: 1 1 auto; height: 1px; background: rgba(255,255,255,0.10);"></span></div>
+      <div style="display: flex; align-items: center; gap: 10px; height: 24px;"><span class="mono" style="width: 30px; font-size: 11px; color: #F3F5F9; font-weight: 600; text-align: right;">A4</span><span style="flex: 1 1 auto; height: 3px; border-radius: 2px; background: linear-gradient(90deg, rgba(255,244,224,0.4), #FFF4E0); box-shadow: 0 0 18px 3px rgba(255,244,224,0.75);"></span></div>
+      <div style="display: flex; align-items: center; gap: 10px; height: 24px;"><span class="mono" style="width: 30px; font-size: 11px; color: #848CA0; text-align: right;">G4</span><span style="flex: 1 1 auto; height: 1px; background: rgba(255,255,255,0.10);"></span></div>
+      <div style="display: flex; align-items: center; gap: 10px; height: 24px;"><span class="mono" style="width: 30px; font-size: 11px; color: #848CA0; text-align: right;">F4</span><span style="flex: 1 1 auto; height: 1px; background: rgba(255,255,255,0.10);"></span></div>
+      <div style="display: flex; align-items: center; gap: 10px; height: 24px;"><span class="mono" style="width: 30px; font-size: 11px; color: #848CA0; text-align: right;">E4</span><span style="flex: 1 1 auto; height: 1px; background: rgba(255,255,255,0.10);"></span></div>
+      <div style="display: flex; align-items: center; gap: 10px; height: 24px;"><span class="mono" style="width: 30px; font-size: 11px; color: #848CA0; text-align: right;">D4</span><span style="flex: 1 1 auto; height: 1px; background: rgba(255,255,255,0.10);"></span></div>
+      <div style="display: flex; align-items: center; gap: 10px; height: 24px;"><span class="mono" style="width: 30px; font-size: 11px; color: #848CA0; text-align: right;">C4</span><span style="flex: 1 1 auto; height: 1px; background: rgba(255,255,255,0.10);"></span></div>
+      <div style="display: flex; align-items: center; gap: 10px; height: 24px;"><span class="mono" style="width: 30px; font-size: 11px; color: #848CA0; text-align: right;">B3</span><span style="flex: 1 1 auto; height: 1px; background: rgba(255,255,255,0.10);"></span></div>
+      <div style="display: flex; align-items: center; gap: 10px; height: 24px;"><span class="mono" style="width: 30px; font-size: 11px; color: #848CA0; text-align: right;">A3</span><span style="flex: 1 1 auto; height: 1px; background: rgba(255,255,255,0.10);"></span></div>
+      <div style="display: flex; align-items: center; gap: 10px; height: 24px;"><span class="mono" style="width: 30px; font-size: 11px; color: #848CA0; text-align: right;">G3</span><span style="flex: 1 1 auto; height: 1px; background: rgba(255,255,255,0.10);"></span></div>
+      <div style="display: flex; align-items: center; gap: 10px; height: 24px;"><span class="mono" style="width: 30px; font-size: 11px; color: #848CA0; text-align: right;">F3</span><span style="flex: 1 1 auto; height: 1px; background: rgba(255,255,255,0.10);"></span></div>
+      <div style="display: flex; align-items: center; gap: 10px; height: 24px;"><span class="mono" style="width: 30px; font-size: 11px; color: #848CA0; text-align: right;">E3</span><span style="flex: 1 1 auto; height: 1px; background: rgba(255,255,255,0.10);"></span></div>
+      <div style="display: flex; align-items: center; gap: 10px; height: 24px;"><span class="mono" style="width: 30px; font-size: 11px; color: #848CA0; text-align: right;">D3</span><span style="flex: 1 1 auto; height: 1px; background: rgba(255,255,255,0.10);"></span></div>
+      <div style="display: flex; align-items: center; gap: 10px; height: 24px;"><span class="mono" style="width: 30px; font-size: 11px; color: #848CA0; text-align: right;">C3</span><span style="flex: 1 1 auto; height: 1px; background: rgba(255,255,255,0.10);"></span></div>
     </div>
-    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px;">
-      <div class="mono" style="font-size: 88px; line-height: 1; font-weight: 500; letter-spacing: -0.05em; text-shadow: 0 0 40px rgba(255,244,224,0.55);">A4</div>
+    <div class="glass" style="border-radius: 22px; padding: 16px 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px;">
+      <div class="mono" style="font-size: 76px; line-height: 1; font-weight: 500; letter-spacing: -0.06em; text-shadow: 0 0 40px rgba(255,244,224,0.6);">A4</div>
       <div class="mono" style="font-size: 16px; color: #AEB5C4;">+6&#162;</div>
       <div style="position: relative; width: 92px; height: 92px;">
-        <svg width="92" height="92" viewBox="0 0 92 92"><circle cx="46" cy="46" r="40" fill="none" stroke="rgba(255,255,255,0.10)" stroke-width="6"></circle><circle cx="46" cy="46" r="40" fill="none" stroke="#FFF4E0" stroke-width="6" stroke-linecap="round" stroke-dasharray="251" stroke-dashoffset="100" transform="rotate(-90 46 46)"></circle></svg>
+        <svg width="92" height="92" viewBox="0 0 92 92"><circle cx="46" cy="46" r="40" fill="none" stroke="rgba(0,0,0,0.55)" stroke-width="8"></circle><circle cx="46" cy="46" r="40" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="6"></circle><circle cx="46" cy="46" r="40" fill="none" stroke="#FFF4E0" stroke-width="6" stroke-linecap="round" stroke-dasharray="251" stroke-dashoffset="100" transform="rotate(-90 46 46)" style="filter: drop-shadow(0 0 6px rgba(255,244,224,0.8));"></circle></svg>
         <div class="mono" style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 13px; color: #F3F5F9;">1.2 s</div>
       </div>
       <div style="font-size: 12px; color: #848CA0; text-align: center;">hold</div>
     </div>
   </div>
   <div style="display: flex; flex-direction: column; gap: 10px; position: relative;">
-    <div style="height: 52px; border-radius: 14px; background: #171B26; color: #F3F5F9; font-weight: 600; font-size: 16px; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(255,255,255,0.09);">That's my top note</div>
-    <div style="height: 44px; border-radius: 14px; color: #AEB5C4; font-weight: 500; font-size: 15px; display: flex; align-items: center; justify-content: center;">Start over</div>
+    <div class="btn-secondary">That's my top note</div>
+    <div class="btn-quiet">Start over</div>
   </div>
 </div>
 </x-dc>

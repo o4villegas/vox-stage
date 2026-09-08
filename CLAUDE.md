@@ -175,7 +175,11 @@ acting.
   as a design canvas — style board + six phone screens + two low-fi alternates (B Editorial
   mono, C Warm graphite): https://claude.ai/code/artifact/2d2637df-adae-44b4-b61f-ce14b881c59c ;
   sources in `docs/design/2027-direction-a/`, rationale + tokens + sources in
-  `docs/DESIGN-DIRECTION-2027.md`. **Awaiting Lando's approval of the mockup AND the
+  `docs/DESIGN-DIRECTION-2027.md`. **Revision 2 same evening** on Lando's feedback ("I like it but
+  we need more dimension and a better, more modern font"): type → Geist + Geist Mono (Type options
+  board offers Mona Sans and Funnel as vetoes); a four-level elevation system (void / panel / object /
+  glass), perspective stage floor, light from above, recessed fields vs raised buttons, runway pitch
+  view in stage mode; review fixes folded in. **Awaiting Lando's approval of the mockup AND the
   foundation plan before any code.**
 - **Product decisions confirmed by Lando (2026-08-28, T/F interview):** reuse prior
   VoxApp/VoxReport tech ("Rangefinder") for profile capture · accounts-first, no
